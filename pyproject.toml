@@ -1,0 +1,122 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "lexisearch"
+version = "0.1.0"
+description = "A production-ready RAG (Retrieval-Augmented Generation) framework for intelligent document search and retrieval."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Abdul Salam", email = "get2salam@users.noreply.github.com"},
+]
+keywords = ["rag", "retrieval-augmented-generation", "search", "embeddings", "nlp", "ai"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Indexing",
+    "Typing :: Typed",
+]
+dependencies = [
+    "tiktoken>=0.5.0",
+]
+
+[project.optional-dependencies]
+pdf = ["pymupdf>=1.23.0"]
+html = ["beautifulsoup4>=4.12.0", "lxml>=4.9.0"]
+openai = ["openai>=1.0.0"]
+sentence-transformers = ["sentence-transformers>=2.2.0"]
+all = [
+    "pymupdf>=1.23.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=4.9.0",
+    "openai>=1.0.0",
+    "sentence-transformers>=2.2.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "mypy>=1.5.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/get2salam/lexisearch"
+Documentation = "https://github.com/get2salam/lexisearch/tree/main/docs"
+Repository = "https://github.com/get2salam/lexisearch"
+Issues = "https://github.com/get2salam/lexisearch/issues"
+Changelog = "https://github.com/get2salam/lexisearch/blob/main/CHANGELOG.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["lexisearch"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests requiring external services",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+show_error_codes = true
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "D",   # pydocstyle
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "RUF", # ruff-specific
+]
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["lexisearch"]
+
+[tool.coverage.run]
+source = ["lexisearch"]
+omit = ["tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 80
