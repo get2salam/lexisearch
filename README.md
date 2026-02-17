@@ -21,6 +21,7 @@
 - **📄 Multi-format Ingestion** — PDF, HTML, plain text, with extensible loader architecture
 - **✂️ Smart Chunking** — Fixed-size, recursive, semantic, and sentence-based strategies with configurable overlap
 - **🧠 Flexible Embeddings** — OpenAI, Sentence Transformers, or bring your own
+- **🗄️ Vector Store Backends** — FAISS, ChromaDB, Qdrant, or in-memory with unified API
 - **⚡ Token-Aware** — Built-in tiktoken integration for precise chunk sizing
 - **🔌 Extensible** — Abstract base classes for every component; plug in your own implementations
 - **📊 Type-Safe** — Fully typed with mypy strict mode, dataclass-based models
@@ -32,13 +33,13 @@
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                        LexiSearch                           │
-├──────────┬──────────┬──────────────┬───────────────────────-┤
-│  Ingest  │ Chunking │  Embeddings  │       Retrieval        │
-│          │          │              │    (coming soon)        │
-│ ┌──────┐ │ ┌──────┐ │  ┌────────┐  │                        │
-│ │ PDF  │ │ │Fixed │ │  │ OpenAI │  │  ┌──────────────────┐  │
-│ │ HTML │ │ │Recur.│ │  │  SBERT │  │  │  Vector Stores   │  │
-│ │ Text │ │ │Sent. │ │  │ Custom │  │  │  (coming soon)   │  │
+├──────────┬──────────┬──────────────┬────────────────────────┤
+│  Ingest  │ Chunking │  Embeddings  │     Vector Stores      │
+│          │          │              │                        │
+│ ┌──────┐ │ ┌──────┐ │  ┌────────┐  │  ┌──────────────────┐  │
+│ │ PDF  │ │ │Fixed │ │  │ OpenAI │  │  │ FAISS  │ Qdrant │  │
+│ │ HTML │ │ │Recur.│ │  │  SBERT │  │  │ Chroma │ Memory │  │
+│ │ Text │ │ │Sent. │ │  │ Custom │  │  │ Custom │        │  │
 │ │Custom│ │ │Seman.│ │  │        │  │  └──────────────────┘  │
 │ └──────┘ │ └──────┘ │  └────────┘  │                        │
 ├──────────┴──────────┴──────────────┴────────────────────────┤
@@ -100,12 +101,28 @@ embedder = MockEmbedder(dimensions=384)
 embedded_chunks = embedder.embed_chunks(chunks)
 ```
 
+### Store & Search Vectors
+
+```python
+from lexisearch.vectorstore import InMemoryVectorStore, VectorStoreConfig, DistanceMetric
+
+config = VectorStoreConfig(dimensions=384, metric=DistanceMetric.COSINE)
+
+with InMemoryVectorStore(config=config) as store:
+    store.add(embedded_chunks)
+    query_vec = embedder.embed_text("What is deep learning?")
+    results = store.search(query_vec, top_k=5)
+    for r in results:
+        print(f"[{r.score:.3f}] {r.chunk.content[:80]}")
+```
+
 ### Full Pipeline
 
 ```python
 from lexisearch.ingest import TextLoader
 from lexisearch.chunking import RecursiveChunker
 from lexisearch.embeddings import MockEmbedder
+from lexisearch.vectorstore import InMemoryVectorStore, VectorStoreConfig
 
 # Load
 loader = TextLoader()
@@ -121,7 +138,12 @@ for doc in docs:
 embedder = MockEmbedder(dimensions=384)
 embedded = embedder.embed_chunks(all_chunks)
 
-print(f"Processed {len(docs)} documents into {len(embedded)} embedded chunks")
+# Store & Search
+config = VectorStoreConfig(dimensions=384)
+with InMemoryVectorStore(config=config) as store:
+    store.add(embedded)
+    results = store.search_by_text("key findings", embedder, top_k=5)
+    print(f"Found {len(results)} results from {len(docs)} documents")
 ```
 
 ## 📖 Documentation
@@ -136,7 +158,7 @@ print(f"Processed {len(docs)} documents into {len(embedded)} embedded chunks")
 - [x] Document ingestion (PDF, HTML, Text)
 - [x] Chunking strategies (fixed, recursive, semantic, sentence)
 - [x] Embedding layer (OpenAI, Sentence Transformers)
-- [ ] Vector store integrations (FAISS, ChromaDB, Pinecone)
+- [x] Vector store integrations (FAISS, ChromaDB, Qdrant, InMemory)
 - [ ] Retrieval pipeline with reranking
 - [ ] Query expansion and HyDE
 - [ ] Evaluation framework (RAGAS metrics)

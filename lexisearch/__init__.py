@@ -1,14 +1,20 @@
 """LexiSearch — A production-ready RAG framework for intelligent document search.
 
 LexiSearch provides a modular pipeline for ingesting documents, chunking text,
-generating embeddings, and retrieving relevant content for LLM-powered
-applications.
+generating embeddings, storing vectors, and retrieving relevant content for
+LLM-powered applications.
 
 Example:
     >>> from lexisearch import Document, DocumentMetadata
     >>> doc = Document(content="Hello, world!")
     >>> doc.word_count
     2
+
+Vector store quick start:
+
+    >>> from lexisearch.vectorstore import InMemoryVectorStore, VectorStoreConfig
+    >>> config = VectorStoreConfig(dimensions=384)
+    >>> store = InMemoryVectorStore(config=config)
 """
 
 from __future__ import annotations
@@ -25,7 +31,7 @@ from lexisearch.models import (
     SearchResult,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "__version__",

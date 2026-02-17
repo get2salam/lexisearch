@@ -10,9 +10,9 @@ LexiSearch follows a modular pipeline architecture where each stage is independe
 │                                                                     │
 │  ┌──────────┐    ┌──────────┐    ┌───────────┐    ┌─────────────┐  │
 │  │          │    │          │    │           │    │             │  │
-│  │  Ingest  │───>│ Chunking │───>│ Embedding │───>│  Retrieval  │  │
-│  │          │    │          │    │           │    │  (planned)  │  │
-│  └──────────┘    └──────────┘    └───────────┘    └─────────────┘  │
+│  │  Ingest  │───>│ Chunking │───>│ Embedding │───>│Vector Store │  │
+│  │          │    │          │    │           │    │             │  │
+│  └──────────┘    └──────────┘    └───────────┘    └──────┬──────┘  │
 │       │               │               │                  │         │
 │       ▼               ▼               ▼                  ▼         │
 │  ┌──────────┐    ┌──────────┐    ┌───────────┐    ┌─────────────┐  │
@@ -145,6 +145,89 @@ All chunkers accept:
 - `embed_chunks()` handles cache-aware batching automatically
 - Deterministic mock embedder for testing
 
+## Vector Store Layer
+
+```
+                   ┌──────────────────┐
+                   │  BaseVectorStore │  (Abstract)
+                   │                  │
+                   │  + add/upsert    │
+                   │  + delete/get    │
+                   │  + search        │
+                   │  + persist/load  │
+                   └────────┬─────────┘
+                            │
+       ┌────────────────────┼────────────────────┐
+       │                    │                    │
+ ┌─────┴──────┐    ┌───────┴───────┐    ┌───────┴──────┐
+ │  InMemory  │    │     FAISS     │    │    Qdrant    │
+ │   Store    │    │    Store      │    │    Store     │
+ │ (testing)  │    │  (production) │    │ (distributed)│
+ └────────────┘    └───────────────┘    └──────────────┘
+                           │
+                   ┌───────┴──────┐
+                   │   ChromaDB   │
+                   │    Store     │
+                   │ (persistent) │
+                   └──────────────┘
+```
+
+### Backend Comparison
+
+| Backend | Best For | Index Type | Dependencies |
+|---------|----------|------------|--------------|
+| **InMemory** | Testing, small datasets | Brute-force | None |
+| **FAISS** | Production, large scale | Flat / IVF | `faiss-cpu` |
+| **ChromaDB** | Persistence, simplicity | HNSW | `chromadb` |
+| **Qdrant** | Distributed, filtering | HNSW | `qdrant-client` |
+
+### Distance Metrics
+
+All backends support three distance metrics via `DistanceMetric`:
+
+| Metric | Formula | Use Case |
+|--------|---------|----------|
+| **Cosine** | 1 − cos(a,b) | Normalised embeddings (most common) |
+| **Euclidean** | √Σ(aᵢ−bᵢ)² | Absolute distance matters |
+| **Dot Product** | Σaᵢbᵢ | Pre-normalised or magnitude-aware |
+
+### Usage Pattern
+
+```python
+from lexisearch.vectorstore import InMemoryVectorStore, VectorStoreConfig, DistanceMetric
+
+config = VectorStoreConfig(
+    collection_name="research_papers",
+    dimensions=384,
+    metric=DistanceMetric.COSINE,
+)
+
+# Use as context manager for automatic lifecycle management
+with InMemoryVectorStore(config=config) as store:
+    store.add(embedded_chunks)
+    results = store.search(query_vector, top_k=5)
+    store.persist("my_index.json")
+```
+
+### Swapping Backends
+
+```python
+# Development / testing
+store = InMemoryVectorStore(config=config)
+
+# Production with FAISS
+from lexisearch.vectorstore.faiss_store import FAISSVectorStore
+store = FAISSVectorStore(config=config, index_type="flat")
+
+# Persistent with ChromaDB
+from lexisearch.vectorstore.chroma_store import ChromaVectorStore
+store = ChromaVectorStore(config=config, persist_directory="./chroma_data")
+
+# Distributed with Qdrant
+from lexisearch.vectorstore.qdrant_store import QdrantVectorStore
+store = QdrantVectorStore(config=config, location="http://localhost:6333")
+```
+
 ## Data Flow Example
 
 ```
@@ -169,7 +252,13 @@ All chunkers accept:
          │
          ▼
   ┌──────────────┐
-  │ Vector Store │   → Index for retrieval (planned)
+  │ Vector Store │   → Index + search via FAISS / Qdrant / ChromaDB
+  └──────┬───────┘
+         │
+         ▼
+  ┌──────────────┐
+  │   Search     │   → SearchResponse with ranked SearchResults
+  │   Query      │
   └──────────────┘
 ```
 
@@ -193,12 +282,20 @@ lexisearch/
 │   ├── recursive.py     # Recursive character splitting
 │   ├── sentence.py      # Sentence-boundary chunking
 │   └── semantic.py      # Similarity-based chunking
-└── embeddings/
-    ├── __init__.py
-    ├── base.py           # BaseEmbedder ABC
-    ├── mock.py           # Deterministic mock
-    ├── openai_embedder.py # OpenAI API
-    └── sbert.py          # Sentence Transformers
+├── embeddings/
+│   ├── __init__.py
+│   ├── base.py          # BaseEmbedder ABC
+│   ├── mock.py          # Deterministic mock
+│   ├── openai_embedder.py # OpenAI API
+│   └── sbert.py         # Sentence Transformers
+└── vectorstore/
+    ├── __init__.py       # Public exports
+    ├── base.py           # BaseVectorStore ABC + VectorStoreConfig
+    ├── metrics.py        # Distance metric functions
+    ├── memory.py         # InMemoryVectorStore (brute-force)
+    ├── faiss_store.py    # FAISSVectorStore (Flat / IVF)
+    ├── chroma_store.py   # ChromaVectorStore (HNSW)
+    └── qdrant_store.py   # QdrantVectorStore (HNSW)
 ```
 
 ## Design Principles
@@ -208,3 +305,4 @@ lexisearch/
 3. **Extensibility** — Abstract base classes for all plugin points
 4. **Testability** — Mock implementations for offline testing
 5. **Production-Ready** — Caching, batch processing, error handling
+6. **Backend Agnostic** — Swap vector stores without changing pipeline code
