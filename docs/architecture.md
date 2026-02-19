@@ -228,6 +228,130 @@ from lexisearch.vectorstore.qdrant_store import QdrantVectorStore
 store = QdrantVectorStore(config=config, location="http://localhost:6333")
 ```
 
+## Retrieval Engine
+
+The retrieval engine combines sparse, dense, and hybrid search strategies
+with second-stage reranking and result diversification.
+
+```
+                   ┌──────────────────┐
+                   │  BaseRetriever   │  (Abstract)
+                   │                  │
+                   │  + retrieve()    │
+                   │  + search()      │
+                   └────────┬─────────┘
+                            │
+       ┌────────────────────┼────────────────────┐
+       │                    │                    │
+ ┌─────┴──────┐    ┌───────┴───────┐    ┌───────┴──────┐
+ │   BM25     │    │    Vector     │    │   Hybrid     │
+ │ Retriever  │    │  Retriever    │    │  Retriever   │
+ │  (sparse)  │    │   (dense)     │    │   (fusion)   │
+ └────────────┘    └───────────────┘    └──────────────┘
+                                              │
+                                    ┌─────────┴─────────┐
+                                    │  Reranked         │
+                                    │  Retriever        │
+                                    │  (two-stage)      │
+                                    └───────────────────┘
+```
+
+### Retrieval Strategies
+
+| Strategy | Type | Best For | Speed |
+|----------|------|----------|-------|
+| **BM25** | Sparse | Keyword/exact match | Very fast |
+| **Vector** | Dense | Semantic similarity | Fast |
+| **Hybrid (RRF)** | Fusion | General-purpose | Medium |
+| **Hybrid (Linear)** | Fusion | Tuned weighting | Medium |
+| **Reranked** | Two-stage | Maximum precision | Slower |
+
+### Fusion Methods
+
+```
+         BM25 Results          Vector Results
+         ┌──────────┐          ┌──────────┐
+         │ doc₁ r=1 │          │ doc₃ r=1 │
+         │ doc₃ r=2 │          │ doc₁ r=2 │
+         │ doc₅ r=3 │          │ doc₇ r=3 │
+         └────┬─────┘          └────┬─────┘
+              │                     │
+              └──────────┬──────────┘
+                         │
+                    ┌────┴─────┐
+                    │  Fusion  │  (RRF / Linear / DBSF)
+                    │  Engine  │
+                    └────┬─────┘
+                         │
+                    ┌────┴─────┐
+                    │ doc₁ 0.8 │  ← appeared in both lists
+                    │ doc₃ 0.7 │  ← appeared in both lists
+                    │ doc₅ 0.3 │
+                    │ doc₇ 0.2 │
+                    └──────────┘
+```
+
+### Reranking Pipeline
+
+```
+    Query: "neural network architectures"
+                    │
+         ┌──────────┴──────────┐
+         │  Stage 1: Retrieve  │  (BM25 / Vector / Hybrid)
+         │  top_k × 3 results  │
+         └──────────┬──────────┘
+                    │
+         ┌──────────┴──────────┐
+         │  Stage 2: Rerank    │  (Cross-encoder / Cohere / Linear)
+         │  rescore candidates │
+         └──────────┬──────────┘
+                    │
+         ┌──────────┴──────────┐
+         │  MMR Diversify      │  (optional)
+         │  remove redundancy  │
+         └──────────┬──────────┘
+                    │
+              Final top_k results
+```
+
+### Query Expansion
+
+| Strategy | How It Works |
+|----------|-------------|
+| **Synonym** | Adds known synonym terms to the query |
+| **Decomposition** | Splits complex queries into sub-queries |
+| **PRF** | Extracts terms from top results (blind feedback) |
+| **Multi-Query** | Generates keyword, reversed, and declarative variants |
+
+### Usage Pattern
+
+```python
+from lexisearch.retrieval import (
+    BM25Retriever, VectorRetriever, HybridRetriever,
+    HybridConfig, FusionMethod, LinearScoreReranker,
+    RerankedRetriever,
+)
+
+# Sparse retriever
+bm25 = BM25Retriever()
+bm25.add_chunks(chunks)
+
+# Dense retriever
+vector = VectorRetriever(vector_store, embedder)
+
+# Hybrid with RRF fusion
+hybrid = HybridRetriever(
+    retrievers=[bm25, vector],
+    config=HybridConfig(fusion_method=FusionMethod.RRF, top_k=10),
+)
+
+# Two-stage with reranking
+reranker = LinearScoreReranker()
+pipeline = RerankedRetriever(hybrid, reranker, prefetch_multiplier=3)
+
+response = pipeline.search("neural network architectures", top_k=5)
+```
+
 ## Data Flow Example
 
 ```
@@ -288,6 +412,15 @@ lexisearch/
 │   ├── mock.py          # Deterministic mock
 │   ├── openai_embedder.py # OpenAI API
 │   └── sbert.py         # Sentence Transformers
+├── retrieval/
+│   ├── __init__.py       # Public exports
+│   ├── base.py           # BaseRetriever ABC + MetadataFilter
+│   ├── bm25.py           # BM25 sparse retriever
+│   ├── vector_retriever.py # Dense vector retriever adapter
+│   ├── hybrid.py         # Hybrid fusion (RRF, linear, DBSF)
+│   ├── reranker.py       # Reranking (cross-encoder, Cohere, linear)
+│   ├── mmr.py            # MMR diversity selection
+│   └── query.py          # Query expansion utilities
 └── vectorstore/
     ├── __init__.py       # Public exports
     ├── base.py           # BaseVectorStore ABC + VectorStoreConfig

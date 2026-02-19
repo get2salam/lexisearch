@@ -22,6 +22,9 @@
 - **✂️ Smart Chunking** — Fixed-size, recursive, semantic, and sentence-based strategies with configurable overlap
 - **🧠 Flexible Embeddings** — OpenAI, Sentence Transformers, or bring your own
 - **🗄️ Vector Store Backends** — FAISS, ChromaDB, Qdrant, or in-memory with unified API
+- **🔎 Hybrid Retrieval** — BM25 + vector search with RRF, linear, and DBSF fusion
+- **📈 Reranking** — Cross-encoder, Cohere API, and linear score reranking pipelines
+- **🎯 Query Expansion** — Synonym, decomposition, pseudo-relevance feedback, multi-query
 - **⚡ Token-Aware** — Built-in tiktoken integration for precise chunk sizing
 - **🔌 Extensible** — Abstract base classes for every component; plug in your own implementations
 - **📊 Type-Safe** — Fully typed with mypy strict mode, dataclass-based models
@@ -43,6 +46,9 @@
 │ │Custom│ │ │Seman.│ │  │        │  │  └──────────────────┘  │
 │ └──────┘ │ └──────┘ │  └────────┘  │                        │
 ├──────────┴──────────┴──────────────┴────────────────────────┤
+│                       Retrieval Engine                       │
+│     BM25 · Vector · Hybrid(RRF) · Rerank · MMR · Expand    │
+├─────────────────────────────────────────────────────────────┤
 │                    Core Models & Types                       │
 │            Document · Chunk · Embedding · SearchResult       │
 └─────────────────────────────────────────────────────────────┘
@@ -116,6 +122,35 @@ with InMemoryVectorStore(config=config) as store:
         print(f"[{r.score:.3f}] {r.chunk.content[:80]}")
 ```
 
+### Hybrid Search with Reranking
+
+```python
+from lexisearch.retrieval import (
+    BM25Retriever, VectorRetriever, HybridRetriever,
+    HybridConfig, FusionMethod, LinearScoreReranker,
+    RerankedRetriever,
+)
+
+# Build retrievers
+bm25 = BM25Retriever()
+bm25.add_chunks(chunks)
+vector = VectorRetriever(store, embedder)
+
+# Hybrid fusion (BM25 + vector)
+hybrid = HybridRetriever(
+    retrievers=[bm25, vector],
+    config=HybridConfig(fusion_method=FusionMethod.RRF, top_k=10),
+)
+
+# Two-stage pipeline with reranking
+reranker = LinearScoreReranker()
+pipeline = RerankedRetriever(hybrid, reranker, prefetch_multiplier=3)
+
+response = pipeline.search("What are transformer architectures?", top_k=5)
+for r in response.results:
+    print(f"[{r.score:.3f}] {r.chunk.content[:80]}")
+```
+
 ### Full Pipeline
 
 ```python
@@ -159,8 +194,10 @@ with InMemoryVectorStore(config=config) as store:
 - [x] Chunking strategies (fixed, recursive, semantic, sentence)
 - [x] Embedding layer (OpenAI, Sentence Transformers)
 - [x] Vector store integrations (FAISS, ChromaDB, Qdrant, InMemory)
-- [ ] Retrieval pipeline with reranking
-- [ ] Query expansion and HyDE
+- [x] Retrieval engine (BM25, vector, hybrid fusion, reranking)
+- [x] Query expansion (synonym, decomposition, PRF, multi-query)
+- [x] MMR diversity selection and near-duplicate removal
+- [ ] HyDE and advanced retrieval strategies
 - [ ] Evaluation framework (RAGAS metrics)
 - [ ] REST API server
 - [ ] Web UI for document management

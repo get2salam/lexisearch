@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-19
+
+### Added
+
+- **Retrieval Engine** — Hybrid search, reranking, diversity, and query expansion
+- `BaseRetriever` ABC with configurable scoring, filtering, and timed search
+- `MetadataFilter` with 9 operators (eq, neq, gt, gte, lt, lte, in, not_in, contains)
+- `BM25Retriever` — Okapi BM25 sparse retriever with inverted index and configurable tokenisation
+- `VectorRetriever` — Dense retriever adapter wrapping any `BaseVectorStore`
+- `HybridRetriever` — Multi-retriever fusion with RRF, linear weighted, and DBSF strategies
+- `RerankedRetriever` — Two-stage retrieve-then-rerank pipeline pattern
+- `CrossEncoderReranker` — Sentence-Transformers cross-encoder reranking (lazy-loaded)
+- `CohereReranker` — Cohere Rerank API integration
+- `LinearScoreReranker` — Lightweight feature-based reranking (term coverage, exact match)
+- `mmr_select()` — Maximal Marginal Relevance for relevance-diversity trade-off
+- `greedy_diversify()` — Near-duplicate removal via similarity threshold
+- `SynonymExpander` — Dictionary-based query term expansion
+- `QueryDecomposer` — Split complex queries into focused sub-queries
+- `PseudoRelevanceFeedback` — Rocchio-style blind feedback from top results
+- `MultiQueryExpander` — Generate keyword, reversed, and declarative query variants
+- 91 new test cases covering all retrieval components and integration pipelines
+
+### Changed
+
+- Bumped version to 0.3.0
+- Updated architecture documentation with retrieval engine layer
+- Updated README roadmap and feature list
+
 ## [0.2.0] - 2026-02-17
 
 ### Added
