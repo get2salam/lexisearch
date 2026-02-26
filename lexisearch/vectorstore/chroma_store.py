@@ -41,8 +41,7 @@ def _require_chroma() -> None:
     """Raise a clear error when chromadb is not installed."""
     if not HAS_CHROMA:
         raise ImportError(
-            "chromadb is required for ChromaVectorStore. "
-            "Install with: pip install chromadb"
+            "chromadb is required for ChromaVectorStore. Install with: pip install chromadb"
         )
 
 
@@ -122,9 +121,7 @@ class ChromaVectorStore(BaseVectorStore):
 
     def _check_initialized(self) -> None:
         if not self._initialized or self._collection is None:
-            raise RuntimeError(
-                "Store not initialized. Call initialize() or use a context manager."
-            )
+            raise RuntimeError("Store not initialized. Call initialize() or use a context manager.")
 
     # ------------------------------------------------------------------
     # Payload helpers

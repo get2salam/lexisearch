@@ -387,7 +387,8 @@ class TestVectorRetriever:
         assert len(results) <= 3
 
     def test_results_have_retriever_metadata(
-        self, vector_retriever: VectorRetriever,
+        self,
+        vector_retriever: VectorRetriever,
     ):
         results = vector_retriever.retrieve("search query", top_k=1)
         assert results[0].metadata["retriever"] == "vector"
@@ -557,9 +558,7 @@ class TestHybridRetriever:
             rank=1,
         )
 
-        fused = HybridRetriever.reciprocal_rank_fusion(
-            [[r1, r2], [r3]], k=60
-        )
+        fused = HybridRetriever.reciprocal_rank_fusion([[r1, r2], [r3]], k=60)
         # c2 appears in both lists, should rank higher
         ids = [cid for cid, _, _ in fused]
         assert "c2" in ids
@@ -577,9 +576,7 @@ class TestHybridRetriever:
             rank=1,
         )
 
-        fused = HybridRetriever.linear_fusion(
-            [[r1], [r2]], weights=[0.5, 0.5]
-        )
+        fused = HybridRetriever.linear_fusion([[r1], [r2]], weights=[0.5, 0.5])
         assert len(fused) == 2
 
 
@@ -804,9 +801,7 @@ class TestQueryExpansion:
 
     def test_query_decomposer_basic(self):
         decomposer = QueryDecomposer()
-        result = decomposer.expand(
-            "What are transformers and how do attention mechanisms work?"
-        )
+        result = decomposer.expand("What are transformers and how do attention mechanisms work?")
         assert len(result.sub_queries) >= 2
         assert result.strategy == "decomposition"
 
@@ -906,9 +901,7 @@ class TestIntegrationPipeline:
         bm25: BM25Retriever,
     ):
         """BM25 retrieval with synonym expansion."""
-        expander = SynonymExpander(
-            synonyms={"NLP": ["natural language processing"]}
-        )
+        expander = SynonymExpander(synonyms={"NLP": ["natural language processing"]})
         expanded = expander.expand("NLP tasks")
         results = bm25.retrieve(expanded.expanded, top_k=3)
         assert len(results) > 0

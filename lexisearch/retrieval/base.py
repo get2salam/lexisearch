@@ -152,9 +152,7 @@ class BaseRetriever(ABC):
 
         # Apply score threshold
         if self.config.score_threshold > 0:
-            results = [
-                r for r in results if r.score >= self.config.score_threshold
-            ]
+            results = [r for r in results if r.score >= self.config.score_threshold]
 
         # Assign ranks
         for i, result in enumerate(results):
@@ -167,9 +165,7 @@ class BaseRetriever(ABC):
             latency_ms=round(elapsed_ms, 2),
         )
 
-    def apply_metadata_filter(
-        self, chunk: Chunk, filters: list[MetadataFilter]
-    ) -> bool:
+    def apply_metadata_filter(self, chunk: Chunk, filters: list[MetadataFilter]) -> bool:
         """Check if a chunk passes all metadata filters.
 
         Args:

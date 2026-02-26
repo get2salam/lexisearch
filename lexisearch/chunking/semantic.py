@@ -81,9 +81,7 @@ class SemanticChunker(BaseChunker):
         """
         super().__init__(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
         self.similarity_threshold = similarity_threshold
-        self.similarity_fn: Callable[[str, str], float] = (
-            similarity_fn or _default_similarity
-        )
+        self.similarity_fn: Callable[[str, str], float] = similarity_fn or _default_similarity
 
     def chunk(self, document: Document) -> list[Chunk]:
         """Split the document into semantically coherent chunks.

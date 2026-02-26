@@ -57,9 +57,7 @@ class MockEmbedder(BaseEmbedder):
             # Cycle through hash bytes and apply simple transformation
             i % len(digest)
             # Combine with index for variety
-            seed_bytes = hashlib.sha256(
-                digest + struct.pack(">I", i)
-            ).digest()[:4]
+            seed_bytes = hashlib.sha256(digest + struct.pack(">I", i)).digest()[:4]
             raw = struct.unpack(">I", seed_bytes)[0]
             # Normalize to [-1, 1]
             value = (raw / (2**32 - 1)) * 2 - 1

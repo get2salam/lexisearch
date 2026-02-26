@@ -159,9 +159,7 @@ class QdrantVectorStore(BaseVectorStore):
 
     def _check_initialized(self) -> None:
         if not self._initialized or self._client is None:
-            raise RuntimeError(
-                "Store not initialized. Call initialize() or use a context manager."
-            )
+            raise RuntimeError("Store not initialized. Call initialize() or use a context manager.")
 
     # ------------------------------------------------------------------
     # Payload helpers
@@ -336,9 +334,7 @@ class QdrantVectorStore(BaseVectorStore):
 
         point = points[0]
         vector = point.vector if isinstance(point.vector, list) else []
-        return self._payload_to_embedded_chunk(
-            str(point.id), point.payload or {}, vector
-        )
+        return self._payload_to_embedded_chunk(str(point.id), point.payload or {}, vector)
 
     def list_ids(self) -> list[str]:
         """Return all stored chunk IDs.
@@ -388,9 +384,7 @@ class QdrantVectorStore(BaseVectorStore):
         conditions: list[FieldCondition] = []
         for key, value in filters.items():
             if key == "document_id":
-                conditions.append(
-                    FieldCondition(key="document_id", match=MatchValue(value=value))
-                )
+                conditions.append(FieldCondition(key="document_id", match=MatchValue(value=value)))
             else:
                 conditions.append(
                     FieldCondition(
@@ -433,12 +427,8 @@ class QdrantVectorStore(BaseVectorStore):
 
         results: list[SearchResult] = []
         for rank, hit in enumerate(hits, start=1):
-            ec = self._payload_to_embedded_chunk(
-                str(hit.id), hit.payload or {}
-            )
-            results.append(
-                SearchResult(chunk=ec.chunk, score=hit.score, rank=rank)
-            )
+            ec = self._payload_to_embedded_chunk(str(hit.id), hit.payload or {})
+            results.append(SearchResult(chunk=ec.chunk, score=hit.score, rank=rank))
 
         return results
 

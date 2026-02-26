@@ -446,9 +446,7 @@ class TestInMemoryStoreSearch:
     def test_search_returns_results(self, memory_store: InMemoryVectorStore) -> None:
         items = _make_sample_items()
         memory_store.add(items)
-        query = MockEmbedder(dimensions=8).embed_text(
-            "machine learning deep learning"
-        )
+        query = MockEmbedder(dimensions=8).embed_text("machine learning deep learning")
         results = memory_store.search(query, top_k=3)
         assert len(results) == 3
         assert all(isinstance(r, SearchResult) for r in results)
@@ -481,36 +479,26 @@ class TestInMemoryStoreSearch:
         results = memory_store.search(query, top_k=2)
         assert len(results) == 2
 
-    def test_search_wrong_dimensions_raises(
-        self, memory_store: InMemoryVectorStore
-    ) -> None:
+    def test_search_wrong_dimensions_raises(self, memory_store: InMemoryVectorStore) -> None:
         items = _make_sample_items()
         memory_store.add(items)
         with pytest.raises(ValueError, match="Expected 8-dim"):
             memory_store.search([1.0, 2.0], top_k=3)
 
-    def test_search_with_document_filter(
-        self, memory_store: InMemoryVectorStore
-    ) -> None:
+    def test_search_with_document_filter(self, memory_store: InMemoryVectorStore) -> None:
         items = _make_sample_items()
         memory_store.add(items)
         query = MockEmbedder(dimensions=8).embed_text("test")
         # doc-0 has chunks 0, 1, 2; doc-1 has chunks 3, 4
-        results = memory_store.search(
-            query, top_k=10, filters={"document_id": "doc-0"}
-        )
+        results = memory_store.search(query, top_k=10, filters={"document_id": "doc-0"})
         assert all(r.chunk.document_id == "doc-0" for r in results)
         assert len(results) == 3
 
-    def test_search_with_metadata_filter(
-        self, memory_store: InMemoryVectorStore
-    ) -> None:
+    def test_search_with_metadata_filter(self, memory_store: InMemoryVectorStore) -> None:
         items = _make_sample_items()
         memory_store.add(items)
         query = MockEmbedder(dimensions=8).embed_text("test")
-        results = memory_store.search(
-            query, top_k=10, filters={"topic": "ai"}
-        )
+        results = memory_store.search(query, top_k=10, filters={"topic": "ai"})
         assert all(r.chunk.metadata.get("topic") == "ai" for r in results)
         assert len(results) == 3
 
@@ -518,9 +506,7 @@ class TestInMemoryStoreSearch:
         items = _make_sample_items()
         memory_store.add(items)
         embedder = MockEmbedder(dimensions=8)
-        results = memory_store.search_by_text(
-            "neural network", embedder, top_k=3
-        )
+        results = memory_store.search_by_text("neural network", embedder, top_k=3)
         assert len(results) == 3
 
 
@@ -528,9 +514,7 @@ class TestInMemoryStoreSearchMetrics:
     """Test search with different distance metrics."""
 
     def test_euclidean_search(self) -> None:
-        config = VectorStoreConfig(
-            dimensions=8, metric=DistanceMetric.EUCLIDEAN
-        )
+        config = VectorStoreConfig(dimensions=8, metric=DistanceMetric.EUCLIDEAN)
         store = InMemoryVectorStore(config=config)
         store.initialize()
         items = _make_sample_items()
@@ -543,9 +527,7 @@ class TestInMemoryStoreSearchMetrics:
             assert 0.0 < r.score <= 1.0
 
     def test_dot_product_search(self) -> None:
-        config = VectorStoreConfig(
-            dimensions=8, metric=DistanceMetric.DOT_PRODUCT
-        )
+        config = VectorStoreConfig(dimensions=8, metric=DistanceMetric.DOT_PRODUCT)
         store = InMemoryVectorStore(config=config)
         store.initialize()
         items = _make_sample_items()
@@ -687,7 +669,5 @@ class TestInMemoryStoreEdgeCases:
         items = _make_sample_items()
         memory_store.add(items)
         query = MockEmbedder(dimensions=8).embed_text("test")
-        results = memory_store.search(
-            query, top_k=10, filters={"topic": "nonexistent"}
-        )
+        results = memory_store.search(query, top_k=10, filters={"topic": "nonexistent"})
         assert results == []

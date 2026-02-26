@@ -54,8 +54,7 @@ class PDFLoader(BaseLoader):
         """
         if not _PYMUPDF_AVAILABLE:
             raise ImportError(
-                "PyMuPDF is required for PDFLoader. "
-                "Install it with: pip install lexisearch[pdf]"
+                "PyMuPDF is required for PDFLoader. Install it with: pip install lexisearch[pdf]"
             )
         super().__init__(default_metadata=default_metadata)
         self.per_page = per_page

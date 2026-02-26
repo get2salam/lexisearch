@@ -89,8 +89,7 @@ class HybridRetriever(BaseRetriever):
 
         if len(retrievers) < 2:
             raise ValueError(
-                "HybridRetriever requires at least 2 sub-retrievers, "
-                f"got {len(retrievers)}"
+                f"HybridRetriever requires at least 2 sub-retrievers, got {len(retrievers)}"
             )
 
         self.retrievers = retrievers
@@ -99,9 +98,7 @@ class HybridRetriever(BaseRetriever):
         if not cfg.weights:
             cfg.weights = [1.0 / len(retrievers)] * len(retrievers)
         elif len(cfg.weights) != len(retrievers):
-            raise ValueError(
-                f"Expected {len(retrievers)} weights, got {len(cfg.weights)}"
-            )
+            raise ValueError(f"Expected {len(retrievers)} weights, got {len(cfg.weights)}")
 
     # ------------------------------------------------------------------
     # Fusion strategies
@@ -135,10 +132,7 @@ class HybridRetriever(BaseRetriever):
                 rrf_score = 1.0 / (k + rank)
                 chunk_scores[cid] = chunk_scores.get(cid, 0.0) + rrf_score
 
-        fused = [
-            (cid, score, chunk_map[cid])
-            for cid, score in chunk_scores.items()
-        ]
+        fused = [(cid, score, chunk_map[cid]) for cid, score in chunk_scores.items()]
         fused.sort(key=lambda x: x[1], reverse=True)
         return fused
 
@@ -176,14 +170,9 @@ class HybridRetriever(BaseRetriever):
                 cid = result.chunk.id
                 chunk_map[cid] = result.chunk
                 norm_score = (result.score - min_s) / rng
-                chunk_scores[cid] = (
-                    chunk_scores.get(cid, 0.0) + weight * norm_score
-                )
+                chunk_scores[cid] = chunk_scores.get(cid, 0.0) + weight * norm_score
 
-        fused = [
-            (cid, score, chunk_map[cid])
-            for cid, score in chunk_scores.items()
-        ]
+        fused = [(cid, score, chunk_map[cid]) for cid, score in chunk_scores.items()]
         fused.sort(key=lambda x: x[1], reverse=True)
         return fused
 
@@ -225,14 +214,9 @@ class HybridRetriever(BaseRetriever):
                 z_score = (result.score - mean) / std
                 # Shift to positive range: sigmoid-like transform
                 norm_score = 1.0 / (1.0 + math.exp(-z_score))
-                chunk_scores[cid] = (
-                    chunk_scores.get(cid, 0.0) + weight * norm_score
-                )
+                chunk_scores[cid] = chunk_scores.get(cid, 0.0) + weight * norm_score
 
-        fused = [
-            (cid, score, chunk_map[cid])
-            for cid, score in chunk_scores.items()
-        ]
+        fused = [(cid, score, chunk_map[cid]) for cid, score in chunk_scores.items()]
         fused.sort(key=lambda x: x[1], reverse=True)
         return fused
 
@@ -269,9 +253,7 @@ class HybridRetriever(BaseRetriever):
         retriever_names: list[str] = []
 
         for retriever in self.retrievers:
-            results = retriever.retrieve(
-                query, top_k=prefetch_k, filters=filters, **kwargs
-            )
+            results = retriever.retrieve(query, top_k=prefetch_k, filters=filters, **kwargs)
             all_results.append(results)
             retriever_names.append(retriever.retriever_type().value)
 
@@ -331,9 +313,7 @@ class HybridRetriever(BaseRetriever):
                 "weights": self._config.weights,
                 "rrf_k": self._config.rrf_k,
                 "num_retrievers": len(self.retrievers),
-                "sub_retrievers": [
-                    r.retriever_type().value for r in self.retrievers
-                ],
+                "sub_retrievers": [r.retriever_type().value for r in self.retrievers],
             }
         )
         return base

@@ -212,8 +212,7 @@ class Embedding:
     def __repr__(self) -> str:
         """Return a concise string representation."""
         return (
-            f"Embedding(chunk_id={self.chunk_id!r}, "
-            f"dims={self.dimensions}, model={self.model!r})"
+            f"Embedding(chunk_id={self.chunk_id!r}, dims={self.dimensions}, model={self.model!r})"
         )
 
 
@@ -248,10 +247,7 @@ class SearchResult:
 
     def __repr__(self) -> str:
         """Return a concise string representation."""
-        return (
-            f"SearchResult(rank={self.rank}, score={self.score:.4f}, "
-            f"chunk={self.chunk.id!r})"
-        )
+        return f"SearchResult(rank={self.rank}, score={self.score:.4f}, chunk={self.chunk.id!r})"
 
 
 @dataclass

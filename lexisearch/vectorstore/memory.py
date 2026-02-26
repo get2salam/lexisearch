@@ -93,9 +93,7 @@ class InMemoryVectorStore(BaseVectorStore):
 
     def _check_initialized(self) -> None:
         if not self._initialized:
-            raise RuntimeError(
-                "Store not initialized. Call initialize() or use a context manager."
-            )
+            raise RuntimeError("Store not initialized. Call initialize() or use a context manager.")
 
     # ------------------------------------------------------------------
     # Helpers
@@ -267,9 +265,7 @@ class InMemoryVectorStore(BaseVectorStore):
         for stored in self._items.values():
             if filters and not self._matches_filters(stored, filters):
                 continue
-            score = compute_score(
-                query_vector, stored.vector, self.config.metric
-            )
+            score = compute_score(query_vector, stored.vector, self.config.metric)
             scored.append((score, stored))
 
         # Sort by score descending
@@ -278,9 +274,7 @@ class InMemoryVectorStore(BaseVectorStore):
         results: list[SearchResult] = []
         for rank, (score, stored) in enumerate(scored[:top_k], start=1):
             ec = self._to_embedded_chunk(stored)
-            results.append(
-                SearchResult(chunk=ec.chunk, score=score, rank=rank)
-            )
+            results.append(SearchResult(chunk=ec.chunk, score=score, rank=rank))
         return results
 
     def search_by_text(
@@ -355,13 +349,9 @@ class InMemoryVectorStore(BaseVectorStore):
 
         raw = json.loads(file_path.read_text(encoding="utf-8"))
 
-        self.config.collection_name = raw.get(
-            "collection_name", self.config.collection_name
-        )
+        self.config.collection_name = raw.get("collection_name", self.config.collection_name)
         self.config.dimensions = raw.get("dimensions", self.config.dimensions)
-        self.config.metric = DistanceMetric(
-            raw.get("metric", self.config.metric.value)
-        )
+        self.config.metric = DistanceMetric(raw.get("metric", self.config.metric.value))
 
         self._items.clear()
         for cid, item_data in raw.get("items", {}).items():
@@ -388,10 +378,7 @@ class InMemoryVectorStore(BaseVectorStore):
     def _validate_dimensions(self, vector: list[float]) -> None:
         """Raise if vector dimensionality doesn't match config."""
         if len(vector) != self.config.dimensions:
-            raise ValueError(
-                f"Expected {self.config.dimensions}-dim vector, "
-                f"got {len(vector)}"
-            )
+            raise ValueError(f"Expected {self.config.dimensions}-dim vector, got {len(vector)}")
 
     @staticmethod
     def _matches_filters(stored: _StoredItem, filters: dict[str, Any]) -> bool:

@@ -29,13 +29,72 @@ from lexisearch.retrieval.base import (
 # Default English stop words (minimal set for broad applicability)
 _DEFAULT_STOP_WORDS: frozenset[str] = frozenset(
     {
-        "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-        "of", "with", "by", "from", "is", "it", "was", "are", "were", "been",
-        "be", "have", "has", "had", "do", "does", "did", "will", "would",
-        "could", "should", "may", "might", "shall", "can", "this", "that",
-        "these", "those", "i", "you", "he", "she", "we", "they", "me", "him",
-        "her", "us", "them", "my", "your", "his", "its", "our", "their",
-        "not", "no", "nor", "so", "if", "as", "up", "out", "about",
+        "a",
+        "an",
+        "the",
+        "and",
+        "or",
+        "but",
+        "in",
+        "on",
+        "at",
+        "to",
+        "for",
+        "of",
+        "with",
+        "by",
+        "from",
+        "is",
+        "it",
+        "was",
+        "are",
+        "were",
+        "been",
+        "be",
+        "have",
+        "has",
+        "had",
+        "do",
+        "does",
+        "did",
+        "will",
+        "would",
+        "could",
+        "should",
+        "may",
+        "might",
+        "shall",
+        "can",
+        "this",
+        "that",
+        "these",
+        "those",
+        "i",
+        "you",
+        "he",
+        "she",
+        "we",
+        "they",
+        "me",
+        "him",
+        "her",
+        "us",
+        "them",
+        "my",
+        "your",
+        "his",
+        "its",
+        "our",
+        "their",
+        "not",
+        "no",
+        "nor",
+        "so",
+        "if",
+        "as",
+        "up",
+        "out",
+        "about",
     }
 )
 
@@ -141,9 +200,7 @@ class BM25Retriever(BaseRetriever):
         tokens = text.split()
 
         if self.bm25_config.stop_words:
-            tokens = [
-                t for t in tokens if t not in self.bm25_config.stop_words
-            ]
+            tokens = [t for t in tokens if t not in self.bm25_config.stop_words]
 
         return tokens
 

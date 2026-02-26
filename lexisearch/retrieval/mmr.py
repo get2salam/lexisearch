@@ -57,8 +57,7 @@ def mmr_select(
     """
     if len(candidates) != len(candidate_vectors):
         raise ValueError(
-            f"Mismatch: {len(candidates)} candidates vs "
-            f"{len(candidate_vectors)} vectors"
+            f"Mismatch: {len(candidates)} candidates vs {len(candidate_vectors)} vectors"
         )
 
     if not candidates:
@@ -67,10 +66,7 @@ def mmr_select(
     k = min(top_k, len(candidates))
 
     # Pre-compute query similarities
-    query_sims = [
-        cosine_similarity(query_vector, vec)
-        for vec in candidate_vectors
-    ]
+    query_sims = [cosine_similarity(query_vector, vec) for vec in candidate_vectors]
 
     selected_indices: list[int] = []
     remaining_indices: set[int] = set(range(len(candidates)))

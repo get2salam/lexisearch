@@ -55,10 +55,7 @@ class TestMockEmbedder:
 
     def test_embed_chunks(self) -> None:
         """embed_chunks should batch-process multiple chunks."""
-        chunks = [
-            Chunk(content=f"chunk {i}", document_id="d1", index=i)
-            for i in range(5)
-        ]
+        chunks = [Chunk(content=f"chunk {i}", document_id="d1", index=i) for i in range(5)]
         embedder = MockEmbedder(dimensions=32)
         results = embedder.embed_chunks(chunks)
         assert len(results) == 5

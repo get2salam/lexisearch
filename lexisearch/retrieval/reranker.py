@@ -247,8 +247,7 @@ class CohereReranker(BaseReranker):
                 self._client = cohere.Client(self._api_key)
             except ImportError as err:
                 raise ImportError(
-                    "CohereReranker requires the cohere package. "
-                    "Install with: pip install cohere"
+                    "CohereReranker requires the cohere package. Install with: pip install cohere"
                 ) from err
         return self._client
 
@@ -384,11 +383,7 @@ class LinearScoreReranker(BaseReranker):
         word_count = len(text.split())
         penalty = max(0.0, 1.0 - self.length_penalty * max(0, word_count - 200))
 
-        return (
-            self.coverage_weight * coverage
-            + self.exact_match_bonus * exact
-            + penalty * 0.05
-        )
+        return self.coverage_weight * coverage + self.exact_match_bonus * exact + penalty * 0.05
 
     def rerank(
         self,
@@ -414,9 +409,7 @@ class LinearScoreReranker(BaseReranker):
         scored: list[tuple[SearchResult, float]] = []
         for result in results:
             feature_score = self.score_pair(query, result.chunk.content)
-            combined = (
-                self.retrieval_weight * result.score + feature_score
-            )
+            combined = self.retrieval_weight * result.score + feature_score
             scored.append((result, combined))
 
         scored.sort(key=lambda x: x[1], reverse=True)
@@ -496,9 +489,7 @@ class RerankedRetriever(BaseRetriever):
         prefetch_k = k * self.prefetch_multiplier
 
         # Stage 1: retrieve candidates
-        candidates = self.retriever.retrieve(
-            query, top_k=prefetch_k, filters=filters, **kwargs
-        )
+        candidates = self.retriever.retrieve(query, top_k=prefetch_k, filters=filters, **kwargs)
 
         # Stage 2: rerank
         return self.reranker.rerank(query, candidates, top_k=k)

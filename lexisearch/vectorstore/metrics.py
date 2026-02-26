@@ -39,9 +39,7 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
         ValueError: If vectors have different lengths.
     """
     if len(a) != len(b):
-        raise ValueError(
-            f"Vector length mismatch: {len(a)} vs {len(b)}"
-        )
+        raise ValueError(f"Vector length mismatch: {len(a)} vs {len(b)}")
     dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
@@ -67,9 +65,7 @@ def euclidean_distance(a: Sequence[float], b: Sequence[float]) -> float:
         ValueError: If vectors have different lengths.
     """
     if len(a) != len(b):
-        raise ValueError(
-            f"Vector length mismatch: {len(a)} vs {len(b)}"
-        )
+        raise ValueError(f"Vector length mismatch: {len(a)} vs {len(b)}")
     return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=False)))
 
 
@@ -90,9 +86,7 @@ def dot_product(a: Sequence[float], b: Sequence[float]) -> float:
         ValueError: If vectors have different lengths.
     """
     if len(a) != len(b):
-        raise ValueError(
-            f"Vector length mismatch: {len(a)} vs {len(b)}"
-        )
+        raise ValueError(f"Vector length mismatch: {len(a)} vs {len(b)}")
     return sum(x * y for x, y in zip(a, b, strict=False))
 
 

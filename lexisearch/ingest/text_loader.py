@@ -56,18 +56,11 @@ class TextLoader(BaseLoader):
             raise FileNotFoundError(f"File not found: {path}")
 
         if not self.can_load(path):
-            raise ValueError(
-                f"Unsupported file format: {path.suffix}. "
-                f"Supported: .txt, .md"
-            )
+            raise ValueError(f"Unsupported file format: {path.suffix}. Supported: .txt, .md")
 
         content = path.read_text(encoding=self.encoding)
 
-        fmt = (
-            DocumentFormat.MARKDOWN
-            if path.suffix.lower() == ".md"
-            else DocumentFormat.TEXT
-        )
+        fmt = DocumentFormat.MARKDOWN if path.suffix.lower() == ".md" else DocumentFormat.TEXT
 
         metadata = self._build_metadata(
             source=path,

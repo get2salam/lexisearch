@@ -225,10 +225,37 @@ class PseudoRelevanceFeedback(BaseQueryExpander):
         self.num_expansion_terms = num_expansion_terms
         self.stop_words = stop_words or frozenset(
             {
-                "a", "an", "the", "and", "or", "but", "in", "on", "at",
-                "to", "for", "of", "with", "by", "from", "is", "it",
-                "was", "are", "were", "been", "be", "have", "has", "had",
-                "this", "that", "these", "those", "not", "no",
+                "a",
+                "an",
+                "the",
+                "and",
+                "or",
+                "but",
+                "in",
+                "on",
+                "at",
+                "to",
+                "for",
+                "of",
+                "with",
+                "by",
+                "from",
+                "is",
+                "it",
+                "was",
+                "are",
+                "were",
+                "been",
+                "be",
+                "have",
+                "has",
+                "had",
+                "this",
+                "that",
+                "these",
+                "those",
+                "not",
+                "no",
             }
         )
 
@@ -247,9 +274,7 @@ class PseudoRelevanceFeedback(BaseQueryExpander):
         from collections import Counter
 
         # Retrieve initial results
-        results = self.retriever.retrieve(
-            query, top_k=self.num_feedback_docs
-        )
+        results = self.retriever.retrieve(query, top_k=self.num_feedback_docs)
 
         if not results:
             return ExpandedQuery(
@@ -266,18 +291,11 @@ class PseudoRelevanceFeedback(BaseQueryExpander):
         for result in results:
             tokens = re.findall(r"\b\w+\b", result.chunk.content.lower())
             for token in tokens:
-                if (
-                    token not in self.stop_words
-                    and token not in query_terms
-                    and len(token) > 2
-                ):
+                if token not in self.stop_words and token not in query_terms and len(token) > 2:
                     term_counts[token] += 1
 
         # Select top expansion terms
-        expansion_terms = [
-            term
-            for term, _ in term_counts.most_common(self.num_expansion_terms)
-        ]
+        expansion_terms = [term for term, _ in term_counts.most_common(self.num_expansion_terms)]
 
         expanded = query
         if expansion_terms:
@@ -323,22 +341,29 @@ class MultiQueryExpander(BaseQueryExpander):
 
         # Variation 1: Extract key terms (remove question words and stop words)
         question_words = {
-            "what", "how", "why", "when", "where", "who", "which",
-            "is", "are", "do", "does", "can", "could",
+            "what",
+            "how",
+            "why",
+            "when",
+            "where",
+            "who",
+            "which",
+            "is",
+            "are",
+            "do",
+            "does",
+            "can",
+            "could",
         }
         tokens = query.split()
-        key_terms = [
-            t for t in tokens
-            if t.lower().strip("?.,!") not in question_words
-        ]
+        key_terms = [t for t in tokens if t.lower().strip("?.,!") not in question_words]
         if key_terms and len(key_terms) >= 2:
             variations.append(" ".join(key_terms))
 
         # Variation 2: Reverse term order (can help with different embeddings)
         if len(tokens) >= 3:
             reversed_terms = [
-                t for t in reversed(tokens)
-                if t.lower().strip("?.,!") not in question_words
+                t for t in reversed(tokens) if t.lower().strip("?.,!") not in question_words
             ]
             if reversed_terms:
                 variations.append(" ".join(reversed_terms))

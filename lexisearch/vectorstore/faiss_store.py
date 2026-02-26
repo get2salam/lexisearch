@@ -110,7 +110,9 @@ class FAISSVectorStore(BaseVectorStore):
         if self.index_type == "ivf":
             quantizer = base_index
             self._index = faiss.IndexIVFFlat(
-                quantizer, dims, self.nlist,
+                quantizer,
+                dims,
+                self.nlist,
                 faiss.METRIC_INNER_PRODUCT
                 if self.config.metric != DistanceMetric.EUCLIDEAN
                 else faiss.METRIC_L2,
@@ -138,9 +140,7 @@ class FAISSVectorStore(BaseVectorStore):
 
     def _check_initialized(self) -> None:
         if not self._initialized or self._index is None:
-            raise RuntimeError(
-                "Store not initialized. Call initialize() or use a context manager."
-            )
+            raise RuntimeError("Store not initialized. Call initialize() or use a context manager.")
 
     # ------------------------------------------------------------------
     # Vector preparation
@@ -381,8 +381,7 @@ class FAISSVectorStore(BaseVectorStore):
 
         if len(query_vector) != self.config.dimensions:
             raise ValueError(
-                f"Expected {self.config.dimensions}-dim query, "
-                f"got {len(query_vector)}"
+                f"Expected {self.config.dimensions}-dim query, got {len(query_vector)}"
             )
 
         # Fetch more than top_k to allow for post-filtering
@@ -415,8 +414,7 @@ class FAISSVectorStore(BaseVectorStore):
                             match = False
                             break
                     elif (
-                        key not in payload.get("metadata", {})
-                        or payload["metadata"][key] != value
+                        key not in payload.get("metadata", {}) or payload["metadata"][key] != value
                     ):
                         match = False
                         break
