@@ -53,35 +53,35 @@ from lexisearch.retrieval.reranker import (
 from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 
 __all__ = [
-    # Base
-    "BaseRetriever",
-    "FilterOperator",
-    "MetadataFilter",
-    "RetrieverConfig",
-    "RetrieverType",
     # Retrievers
     "BM25Config",
     "BM25Retriever",
-    "VectorRetriever",
-    "VectorRetrieverConfig",
-    "HybridConfig",
-    "HybridRetriever",
-    "FusionMethod",
-    "RerankedRetriever",
-    # Rerankers
-    "BaseReranker",
-    "CohereReranker",
-    "CrossEncoderReranker",
-    "LinearScoreReranker",
-    "RerankerConfig",
-    # Diversity
-    "greedy_diversify",
-    "mmr_select",
     # Query expansion
     "BaseQueryExpander",
+    # Rerankers
+    "BaseReranker",
+    # Base
+    "BaseRetriever",
+    "CohereReranker",
+    "CrossEncoderReranker",
     "ExpandedQuery",
+    "FilterOperator",
+    "FusionMethod",
+    "HybridConfig",
+    "HybridRetriever",
+    "LinearScoreReranker",
+    "MetadataFilter",
     "MultiQueryExpander",
     "PseudoRelevanceFeedback",
     "QueryDecomposer",
+    "RerankedRetriever",
+    "RerankerConfig",
+    "RetrieverConfig",
+    "RetrieverType",
     "SynonymExpander",
+    "VectorRetriever",
+    "VectorRetrieverConfig",
+    # Diversity
+    "greedy_diversify",
+    "mmr_select",
 ]

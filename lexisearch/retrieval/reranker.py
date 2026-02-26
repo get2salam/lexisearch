@@ -55,6 +55,7 @@ class BaseReranker(ABC):
     """
 
     def __init__(self, config: RerankerConfig | None = None) -> None:
+        """Initialize for."""
         self.config = config or RerankerConfig()
 
     @abstractmethod
@@ -110,6 +111,7 @@ class CrossEncoderReranker(BaseReranker):
         config: RerankerConfig | None = None,
         model: Any = None,
     ) -> None:
+        """Initialize CrossEncoderReranker."""
         super().__init__(config)
         self._model = model
         self._lazy_loaded = False
@@ -129,11 +131,11 @@ class CrossEncoderReranker(BaseReranker):
 
                 self._model = CrossEncoder(self.config.model_name)
                 self._lazy_loaded = True
-            except ImportError:
+            except ImportError as err:
                 raise ImportError(
                     "CrossEncoderReranker requires sentence-transformers. "
                     "Install with: pip install sentence-transformers"
-                )
+                ) from err
         return self._model
 
     def score_pair(self, query: str, text: str) -> float:
@@ -183,7 +185,7 @@ class CrossEncoderReranker(BaseReranker):
             all_scores.extend(float(s) for s in scores)
 
         # Build scored results
-        scored = list(zip(results, all_scores))
+        scored = list(zip(results, all_scores, strict=False))
         scored.sort(key=lambda x: x[1], reverse=True)
 
         # Apply threshold and limit
@@ -226,6 +228,7 @@ class CohereReranker(BaseReranker):
         api_key: str,
         config: RerankerConfig | None = None,
     ) -> None:
+        """Initialize CohereReranker."""
         cfg = config or RerankerConfig(model_name="rerank-english-v3.0")
         super().__init__(cfg)
         self._api_key = api_key
@@ -242,11 +245,11 @@ class CohereReranker(BaseReranker):
                 import cohere
 
                 self._client = cohere.Client(self._api_key)
-            except ImportError:
+            except ImportError as err:
                 raise ImportError(
                     "CohereReranker requires the cohere package. "
                     "Install with: pip install cohere"
-                )
+                ) from err
         return self._client
 
     def score_pair(self, query: str, text: str) -> float:
@@ -346,6 +349,7 @@ class LinearScoreReranker(BaseReranker):
         exact_match_bonus: float = 0.1,
         length_penalty: float = 0.001,
     ) -> None:
+        """Initialize LinearScoreReranker."""
         super().__init__(config)
         self.retrieval_weight = retrieval_weight
         self.coverage_weight = coverage_weight
@@ -464,6 +468,7 @@ class RerankedRetriever(BaseRetriever):
         prefetch_multiplier: int = 3,
         config: RetrieverConfig | None = None,
     ) -> None:
+        """Initialize the instance."""
         super().__init__(config)
         self.retriever = retriever
         self.reranker = reranker

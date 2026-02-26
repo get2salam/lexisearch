@@ -6,32 +6,21 @@ and query expansion — ~100 test cases.
 
 from __future__ import annotations
 
-import math
-
 import pytest
 
-from lexisearch.models import Chunk, ChunkStrategy, SearchResult
 from lexisearch.embeddings.mock import MockEmbedder
-from lexisearch.vectorstore.base import VectorStoreConfig
-from lexisearch.vectorstore.memory import InMemoryVectorStore
+from lexisearch.models import Chunk, ChunkStrategy, SearchResult
 from lexisearch.retrieval.base import (
-    BaseRetriever,
     FilterOperator,
     MetadataFilter,
     RetrieverConfig,
     RetrieverType,
 )
 from lexisearch.retrieval.bm25 import BM25Config, BM25Retriever
-from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 from lexisearch.retrieval.hybrid import (
     FusionMethod,
     HybridConfig,
     HybridRetriever,
-)
-from lexisearch.retrieval.reranker import (
-    LinearScoreReranker,
-    RerankedRetriever,
-    RerankerConfig,
 )
 from lexisearch.retrieval.mmr import greedy_diversify, mmr_select
 from lexisearch.retrieval.query import (
@@ -40,7 +29,13 @@ from lexisearch.retrieval.query import (
     QueryDecomposer,
     SynonymExpander,
 )
-
+from lexisearch.retrieval.reranker import (
+    LinearScoreReranker,
+    RerankedRetriever,
+)
+from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
+from lexisearch.vectorstore.base import VectorStoreConfig
+from lexisearch.vectorstore.memory import InMemoryVectorStore
 
 # ======================================================================
 # Fixtures

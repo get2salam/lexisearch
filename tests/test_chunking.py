@@ -6,8 +6,8 @@ import pytest
 
 from lexisearch.chunking.fixed import FixedSizeChunker
 from lexisearch.chunking.recursive import RecursiveChunker
-from lexisearch.chunking.sentence import SentenceChunker
 from lexisearch.chunking.semantic import SemanticChunker
+from lexisearch.chunking.sentence import SentenceChunker
 from lexisearch.models import ChunkStrategy, Document
 
 
@@ -59,7 +59,7 @@ class TestFixedSizeChunker:
             FixedSizeChunker(chunk_size=0)
 
     def test_overlap_exceeds_size(self) -> None:
-        """overlap >= chunk_size should raise ValueError."""
+        """Overlap >= chunk_size should raise ValueError."""
         with pytest.raises(ValueError):
             FixedSizeChunker(chunk_size=100, chunk_overlap=100)
 

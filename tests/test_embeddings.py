@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 from lexisearch.embeddings.mock import MockEmbedder
-from lexisearch.models import Chunk, ChunkStrategy
+from lexisearch.models import Chunk
 
 
 class TestMockEmbedder:

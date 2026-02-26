@@ -107,6 +107,9 @@ select = [
 ]
 ignore = ["D100", "D104"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D102", "D103", "D105", "D107"]
+
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 

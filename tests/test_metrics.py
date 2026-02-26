@@ -120,7 +120,7 @@ class TestL2NormalizeProperties:
         v = [3.0, 4.0]
         once = l2_normalize(v)
         twice = l2_normalize(once)
-        for a, b in zip(once, twice):
+        for a, b in zip(once, twice, strict=False):
             assert a == pytest.approx(b)
 
 

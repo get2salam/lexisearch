@@ -31,7 +31,6 @@ logger = logging.getLogger(__name__)
 
 try:
     import chromadb
-    from chromadb.config import Settings
 
     HAS_CHROMA = True
 except ImportError:
@@ -76,6 +75,7 @@ class ChromaVectorStore(BaseVectorStore):
         persist_directory: str | None = None,
         client: Any | None = None,
     ) -> None:
+        """Initialize ChromaVectorStore."""
         _require_chroma()
         super().__init__(config)
         self._persist_directory = persist_directory
@@ -367,7 +367,7 @@ class ChromaVectorStore(BaseVectorStore):
         dists_list = raw.get("distances", [[]])[0]
 
         for rank, (cid, doc, meta, dist) in enumerate(
-            zip(ids_list, docs_list, metas_list, dists_list), start=1
+            zip(ids_list, docs_list, metas_list, dists_list, strict=False), start=1
         ):
             # ChromaDB returns distances; convert to similarity
             # For cosine: distance = 1 - similarity

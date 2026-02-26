@@ -94,6 +94,7 @@ class QdrantVectorStore(BaseVectorStore):
         api_key: str | None = None,
         dimensions: int | None = None,
     ) -> None:
+        """Initialize QdrantVectorStore."""
         _require_qdrant()
         if config is None:
             config = VectorStoreConfig(

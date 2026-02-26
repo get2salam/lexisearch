@@ -15,7 +15,7 @@ import math
 import re
 import string
 from collections import Counter
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from lexisearch.models import Chunk, SearchResult
@@ -105,6 +105,7 @@ class BM25Retriever(BaseRetriever):
         config: RetrieverConfig | None = None,
         bm25_config: BM25Config | None = None,
     ) -> None:
+        """Initialize BM25Retriever."""
         super().__init__(config)
         self.bm25_config = bm25_config or BM25Config()
 
@@ -240,7 +241,7 @@ class BM25Retriever(BaseRetriever):
     # ------------------------------------------------------------------
 
     def _idf(self, term: str) -> float:
-        """Compute the Inverse Document Frequency for a term.
+        r"""Compute the Inverse Document Frequency for a term.
 
         Uses the standard BM25 IDF formula with an epsilon floor:
 
@@ -254,8 +255,8 @@ class BM25Retriever(BaseRetriever):
             IDF score (floored at ``epsilon``).
         """
         n = len(self._inverted_index.get(term, set()))
-        N = len(self._documents)
-        idf = math.log((N - n + 0.5) / (n + 0.5) + 1.0)
+        total_docs = len(self._documents)
+        idf = math.log((total_docs - n + 0.5) / (n + 0.5) + 1.0)
         return max(idf, self.bm25_config.epsilon)
 
     def score_document(self, query_tokens: list[str], doc_id: str) -> float:

@@ -10,10 +10,12 @@ NumPy dependencies required at this layer.
 from __future__ import annotations
 
 import math
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from lexisearch.vectorstore.base import DistanceMetric
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # ------------------------------------------------------------------
 # Core metric functions
@@ -21,7 +23,7 @@ from lexisearch.vectorstore.base import DistanceMetric
 
 
 def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
-    """Compute cosine similarity between two vectors.
+    r"""Compute cosine similarity between two vectors.
 
     .. math::
         \\text{sim}(a, b) = \\frac{a \\cdot b}{\\|a\\| \\, \\|b\\|}
@@ -40,7 +42,7 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
         raise ValueError(
             f"Vector length mismatch: {len(a)} vs {len(b)}"
         )
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
     if norm_a == 0.0 or norm_b == 0.0:
@@ -49,7 +51,7 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
 
 
 def euclidean_distance(a: Sequence[float], b: Sequence[float]) -> float:
-    """Compute Euclidean (L2) distance between two vectors.
+    r"""Compute Euclidean (L2) distance between two vectors.
 
     .. math::
         d(a, b) = \\sqrt{\\sum_i (a_i - b_i)^2}
@@ -68,11 +70,11 @@ def euclidean_distance(a: Sequence[float], b: Sequence[float]) -> float:
         raise ValueError(
             f"Vector length mismatch: {len(a)} vs {len(b)}"
         )
-    return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b)))
+    return math.sqrt(sum((x - y) ** 2 for x, y in zip(a, b, strict=False)))
 
 
 def dot_product(a: Sequence[float], b: Sequence[float]) -> float:
-    """Compute the inner (dot) product of two vectors.
+    r"""Compute the inner (dot) product of two vectors.
 
     .. math::
         \\text{dot}(a, b) = \\sum_i a_i \\, b_i
@@ -91,7 +93,7 @@ def dot_product(a: Sequence[float], b: Sequence[float]) -> float:
         raise ValueError(
             f"Vector length mismatch: {len(a)} vs {len(b)}"
         )
-    return sum(x * y for x, y in zip(a, b))
+    return sum(x * y for x, y in zip(a, b, strict=False))
 
 
 # ------------------------------------------------------------------
@@ -124,7 +126,7 @@ def compute_score(
     b: Sequence[float],
     metric: DistanceMetric,
 ) -> float:
-    """Compute a similarity score using the given metric.
+    r"""Compute a similarity score using the given metric.
 
     For :attr:`DistanceMetric.EUCLIDEAN` the score is converted so that
     *higher means more similar*:

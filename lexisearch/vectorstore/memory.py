@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
@@ -67,6 +67,7 @@ class InMemoryVectorStore(BaseVectorStore):
     """
 
     def __init__(self, config: VectorStoreConfig | None = None) -> None:
+        """Initialize InMemoryVectorStore."""
         super().__init__(config)
         self._items: dict[str, _StoredItem] = {}
         self._initialized: bool = False

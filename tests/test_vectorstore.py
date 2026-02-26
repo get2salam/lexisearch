@@ -25,7 +25,7 @@ from lexisearch.models import (
     Embedding,
     SearchResult,
 )
-from lexisearch.vectorstore.base import BaseVectorStore, DistanceMetric, VectorStoreConfig
+from lexisearch.vectorstore.base import DistanceMetric, VectorStoreConfig
 from lexisearch.vectorstore.memory import InMemoryVectorStore
 from lexisearch.vectorstore.metrics import (
     compute_pairwise_scores,
@@ -35,7 +35,6 @@ from lexisearch.vectorstore.metrics import (
     euclidean_distance,
     l2_normalize,
 )
-
 
 # =====================================================================
 # Fixtures
@@ -634,7 +633,7 @@ class TestInMemoryStorePersistence:
             results2 = store2.search(query, top_k=3)
 
             assert len(results1) == len(results2)
-            for r1, r2 in zip(results1, results2):
+            for r1, r2 in zip(results1, results2, strict=False):
                 assert r1.chunk.id == r2.chunk.id
                 assert r1.score == pytest.approx(r2.score)
 

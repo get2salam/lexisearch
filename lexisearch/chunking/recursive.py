@@ -6,12 +6,14 @@ until each piece fits within the target chunk size.
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from lexisearch.chunking.base import BaseChunker
 from lexisearch.models import Chunk, ChunkStrategy, Document
 
 
 class RecursiveChunker(BaseChunker):
-    """Recursively split text using a hierarchy of separators.
+    r"""Recursively split text using a hierarchy of separators.
 
     Tries the first separator; for any piece still larger than
     ``chunk_size``, the next separator is tried, and so on.  Falls back
@@ -30,7 +32,7 @@ class RecursiveChunker(BaseChunker):
         >>> chunks = chunker.chunk(doc)
     """
 
-    DEFAULT_SEPARATORS: list[str] = ["\n\n", "\n", ". ", " ", ""]
+    DEFAULT_SEPARATORS: ClassVar[list[str]] = ["\n\n", "\n", ". ", " ", ""]
 
     def __init__(
         self,

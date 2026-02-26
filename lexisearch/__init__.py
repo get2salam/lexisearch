@@ -34,7 +34,6 @@ from lexisearch.models import (
 __version__ = "0.3.0"
 
 __all__ = [
-    "__version__",
     "Chunk",
     "ChunkStrategy",
     "Document",
@@ -44,4 +43,5 @@ __all__ = [
     "Embedding",
     "SearchResponse",
     "SearchResult",
+    "__version__",
 ]

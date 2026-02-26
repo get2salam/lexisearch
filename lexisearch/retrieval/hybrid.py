@@ -82,6 +82,7 @@ class HybridRetriever(BaseRetriever):
         retrievers: list[BaseRetriever],
         config: HybridConfig | None = None,
     ) -> None:
+        """Initialize the instance."""
         cfg = config or HybridConfig()
         super().__init__(cfg)
         self._config = cfg
@@ -111,7 +112,7 @@ class HybridRetriever(BaseRetriever):
         result_lists: list[list[SearchResult]],
         k: int = 60,
     ) -> list[tuple[str, float, Chunk]]:
-        """Combine results using Reciprocal Rank Fusion.
+        r"""Combine results using Reciprocal Rank Fusion.
 
         .. math::
             \\text{RRF}(d) = \\sum_{r \\in R} \\frac{1}{k + \\text{rank}_r(d)}
@@ -161,7 +162,7 @@ class HybridRetriever(BaseRetriever):
         chunk_scores: dict[str, float] = {}
         chunk_map: dict[str, Chunk] = {}
 
-        for weight, results in zip(weights, result_lists):
+        for weight, results in zip(weights, result_lists, strict=False):
             if not results:
                 continue
 
@@ -209,7 +210,7 @@ class HybridRetriever(BaseRetriever):
         chunk_scores: dict[str, float] = {}
         chunk_map: dict[str, Chunk] = {}
 
-        for weight, results in zip(weights, result_lists):
+        for weight, results in zip(weights, result_lists, strict=False):
             if not results:
                 continue
 
@@ -290,7 +291,7 @@ class HybridRetriever(BaseRetriever):
         for rank, (chunk_id, score, chunk) in enumerate(fused[:k], start=1):
             # Track which retrievers contributed to this result
             sources: list[str] = []
-            for name, result_list in zip(retriever_names, all_results):
+            for name, result_list in zip(retriever_names, all_results, strict=False):
                 if any(r.chunk.id == chunk_id for r in result_list):
                     sources.append(name)
 

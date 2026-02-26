@@ -19,7 +19,6 @@ Example:
 
 from __future__ import annotations
 
-import json
 import logging
 import pickle
 from pathlib import Path
@@ -76,6 +75,7 @@ class FAISSVectorStore(BaseVectorStore):
         nlist: int = 100,
         nprobe: int = 10,
     ) -> None:
+        """Initialize FAISSVectorStore."""
         _require_faiss()
         if config is None:
             config = VectorStoreConfig(
@@ -414,7 +414,10 @@ class FAISSVectorStore(BaseVectorStore):
                         if payload.get("document_id") != value:
                             match = False
                             break
-                    elif key not in payload.get("metadata", {}) or payload["metadata"][key] != value:
+                    elif (
+                        key not in payload.get("metadata", {})
+                        or payload["metadata"][key] != value
+                    ):
                         match = False
                         break
                 if not match:

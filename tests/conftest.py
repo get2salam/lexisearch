@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import Generator
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,6 +15,9 @@ from lexisearch.models import (
     DocumentFormat,
     DocumentMetadata,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 @pytest.fixture

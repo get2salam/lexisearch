@@ -78,6 +78,7 @@ class SynonymExpander(BaseQueryExpander):
         max_synonyms_per_term: int = 3,
         case_sensitive: bool = False,
     ) -> None:
+        """Initialize SynonymExpander."""
         self.synonyms = synonyms or {}
         self.max_synonyms_per_term = max_synonyms_per_term
         self.case_sensitive = case_sensitive
@@ -146,6 +147,7 @@ class QueryDecomposer(BaseQueryExpander):
         split_patterns: list[str] | None = None,
         min_sub_query_length: int = 5,
     ) -> None:
+        """Initialize the instance."""
         self.split_patterns = split_patterns or [
             r"\band\b",
             r"\bor\b",
@@ -217,6 +219,7 @@ class PseudoRelevanceFeedback(BaseQueryExpander):
         num_expansion_terms: int = 5,
         stop_words: frozenset[str] | None = None,
     ) -> None:
+        """Initialize PseudoRelevanceFeedback."""
         self.retriever = retriever
         self.num_feedback_docs = num_feedback_docs
         self.num_expansion_terms = num_expansion_terms
@@ -304,6 +307,7 @@ class MultiQueryExpander(BaseQueryExpander):
     """
 
     def __init__(self, max_variations: int = 3) -> None:
+        """Initialize MultiQueryExpander."""
         self.max_variations = max_variations
 
     def expand(self, query: str) -> ExpandedQuery:
@@ -318,7 +322,10 @@ class MultiQueryExpander(BaseQueryExpander):
         variations: list[str] = [query]
 
         # Variation 1: Extract key terms (remove question words and stop words)
-        question_words = {"what", "how", "why", "when", "where", "who", "which", "is", "are", "do", "does", "can", "could"}
+        question_words = {
+            "what", "how", "why", "when", "where", "who", "which",
+            "is", "are", "do", "does", "can", "could",
+        }
         tokens = query.split()
         key_terms = [
             t for t in tokens

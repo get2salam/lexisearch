@@ -10,10 +10,13 @@ References:
 
 from __future__ import annotations
 
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from lexisearch.models import SearchResult
 from lexisearch.vectorstore.metrics import cosine_similarity
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def mmr_select(
@@ -23,7 +26,7 @@ def mmr_select(
     top_k: int = 10,
     lambda_param: float = 0.5,
 ) -> list[SearchResult]:
-    """Select results using Maximal Marginal Relevance.
+    r"""Select results using Maximal Marginal Relevance.
 
     At each step, MMR selects the candidate that maximises:
 

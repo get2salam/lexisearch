@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import pytest
-
 from lexisearch.models import (
     Chunk,
-    ChunkStrategy,
     Document,
     DocumentFormat,
     DocumentMetadata,
@@ -79,7 +76,7 @@ class TestDocument:
         assert doc.word_count == 3
 
     def test_repr(self) -> None:
-        """repr should be concise and include the ID."""
+        """Repr should be concise and include the ID."""
         doc = Document(content="short")
         r = repr(doc)
         assert "Document" in r
@@ -109,7 +106,7 @@ class TestChunk:
         assert chunk.token_estimate >= 1
 
     def test_repr(self, sample_chunk: Chunk) -> None:
-        """repr should be concise."""
+        """Repr should be concise."""
         r = repr(sample_chunk)
         assert "Chunk" in r
 
@@ -128,12 +125,12 @@ class TestEmbedding:
         assert emb.dimensions == 2
 
     def test_norm(self) -> None:
-        """norm should compute L2 norm correctly."""
+        """Norm should compute L2 norm correctly."""
         emb = Embedding(chunk_id="c1", vector=[3.0, 4.0])
         assert abs(emb.norm - 5.0) < 1e-6
 
     def test_repr(self) -> None:
-        """repr should include dimensions and model."""
+        """Repr should include dimensions and model."""
         emb = Embedding(chunk_id="c1", vector=[1.0], model="test")
         r = repr(emb)
         assert "test" in r

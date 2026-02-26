@@ -82,6 +82,7 @@ class BaseRetriever(ABC):
     """
 
     def __init__(self, config: RetrieverConfig | None = None) -> None:
+        """Initialize provides."""
         self.config = config or RetrieverConfig()
 
     @abstractmethod
@@ -236,6 +237,7 @@ class BaseRetriever(ABC):
         }
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return (
             f"{type(self).__name__}("
             f"type={self.retriever_type().value!r}, "

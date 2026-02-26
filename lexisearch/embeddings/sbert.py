@@ -22,7 +22,7 @@ except ImportError:
 class SentenceTransformerEmbedder(BaseEmbedder):
     """Embedding provider backed by Sentence Transformers.
 
-    Loads a local or Hugging Face–hosted model and runs inference on CPU
+    Loads a local or Hugging Face-hosted model and runs inference on CPU
     or GPU.  This is ideal for offline or on-premises deployments.
 
     Args:

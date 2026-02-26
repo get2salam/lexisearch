@@ -6,7 +6,7 @@ Requires the ``html`` extra: ``pip install lexisearch[html]``.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 from lexisearch.ingest.base import BaseLoader
 from lexisearch.models import Document, DocumentFormat
@@ -40,7 +40,7 @@ class HTMLLoader(BaseLoader):
         >>> docs = loader.load("page.html")
     """
 
-    DEFAULT_STRIP_TAGS: list[str] = ["script", "style", "nav", "footer", "header"]
+    DEFAULT_STRIP_TAGS: ClassVar[list[str]] = ["script", "style", "nav", "footer", "header"]
 
     def __init__(
         self,

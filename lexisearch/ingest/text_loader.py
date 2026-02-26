@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from lexisearch.ingest.base import BaseLoader
-from lexisearch.models import Document, DocumentFormat, DocumentMetadata
+from lexisearch.models import Document, DocumentFormat
 
 
 class TextLoader(BaseLoader):

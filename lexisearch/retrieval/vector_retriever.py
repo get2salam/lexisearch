@@ -7,18 +7,20 @@ integration of vector stores into the retrieval pipeline.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any
 
-from lexisearch.embeddings.base import BaseEmbedder
-from lexisearch.models import SearchResult
 from lexisearch.retrieval.base import (
     BaseRetriever,
     MetadataFilter,
     RetrieverConfig,
     RetrieverType,
 )
-from lexisearch.vectorstore.base import BaseVectorStore
+
+if TYPE_CHECKING:
+    from lexisearch.embeddings.base import BaseEmbedder
+    from lexisearch.models import SearchResult
+    from lexisearch.vectorstore.base import BaseVectorStore
 
 
 @dataclass
@@ -67,6 +69,7 @@ class VectorRetriever(BaseRetriever):
         embedder: BaseEmbedder,
         config: VectorRetrieverConfig | None = None,
     ) -> None:
+        """Initialize the instance."""
         super().__init__(config or VectorRetrieverConfig())
         self.vector_store = vector_store
         self.embedder = embedder

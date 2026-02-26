@@ -9,16 +9,17 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from lexisearch.models import Chunk, EmbeddedChunk, SearchResult
+if TYPE_CHECKING:
+    from lexisearch.models import EmbeddedChunk, SearchResult
 
 
 class DistanceMetric(Enum):
     """Supported distance / similarity metrics.
 
     Attributes:
-        COSINE: Cosine similarity (1 − cosine distance).
+        COSINE: Cosine similarity (1 - cosine distance).
         EUCLIDEAN: L2 (Euclidean) distance — smaller is more similar.
         DOT_PRODUCT: Inner product — larger is more similar.
     """
@@ -56,6 +57,7 @@ class BaseVectorStore(ABC):
     """
 
     def __init__(self, config: VectorStoreConfig | None = None) -> None:
+        """Initialize BaseVectorStore."""
         self.config = config or VectorStoreConfig()
 
     # ------------------------------------------------------------------
@@ -290,13 +292,16 @@ class BaseVectorStore(ABC):
     # ------------------------------------------------------------------
 
     def __enter__(self) -> BaseVectorStore:
+        """Enter the context manager."""
         self.initialize()
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+        """Exit the context manager."""
         self.close()
 
     def __repr__(self) -> str:
+        """Return string representation."""
         return (
             f"{type(self).__name__}("
             f"collection={self.config.collection_name!r}, "

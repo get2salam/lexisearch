@@ -55,7 +55,7 @@ class MockEmbedder(BaseEmbedder):
         values: list[float] = []
         for i in range(self._dimensions):
             # Cycle through hash bytes and apply simple transformation
-            byte_idx = i % len(digest)
+            i % len(digest)
             # Combine with index for variety
             seed_bytes = hashlib.sha256(
                 digest + struct.pack(">I", i)

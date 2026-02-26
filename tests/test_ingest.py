@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from lexisearch.ingest.text_loader import TextLoader
 from lexisearch.models import DocumentFormat
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestTextLoader:

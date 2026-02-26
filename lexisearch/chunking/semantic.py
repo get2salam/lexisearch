@@ -8,10 +8,13 @@ embedding model via the ``similarity_fn`` parameter.
 from __future__ import annotations
 
 import re
-from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 from lexisearch.chunking.base import BaseChunker
 from lexisearch.models import Chunk, ChunkStrategy, Document
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 def _default_similarity(a: str, b: str) -> float:
