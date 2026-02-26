@@ -68,7 +68,7 @@ class TestMockEmbedder:
     def test_cache_hit(self) -> None:
         """Cached embeddings should be reused."""
         embedder = MockEmbedder(dimensions=32, use_cache=True)
-        embedder.embed_text("cached")
+        embedder.embed_text_cached("cached")
         assert embedder.cache_size == 1
         # Second call should use cache
         v = embedder.embed_text_cached("cached")
