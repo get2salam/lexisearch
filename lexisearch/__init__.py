@@ -10,11 +10,21 @@ Example:
     >>> doc.word_count
     2
 
-Vector store quick start:
+Pipeline quick start:
 
-    >>> from lexisearch.vectorstore import InMemoryVectorStore, VectorStoreConfig
-    >>> config = VectorStoreConfig(dimensions=384)
-    >>> store = InMemoryVectorStore(config=config)
+    >>> from lexisearch.pipeline import PipelineBuilder, PipelineRunner
+    >>> from lexisearch.embeddings import MockEmbedder
+    >>> from lexisearch.generation import MockLLM
+    >>> from lexisearch.models import Document
+    >>> pipeline = (
+    ...     PipelineBuilder.create("demo")
+    ...     .embed(MockEmbedder())
+    ...     .store()
+    ...     .retrieve()
+    ...     .generate(MockLLM())
+    ...     .build()
+    ... )
+    >>> runner = PipelineRunner(pipeline)
 """
 
 from __future__ import annotations
@@ -31,7 +41,7 @@ from lexisearch.models import (
     SearchResult,
 )
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 
 __all__ = [
     "Chunk",
