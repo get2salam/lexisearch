@@ -207,7 +207,7 @@ class Embedding:
         Returns:
             The Euclidean norm of the vector.
         """
-        return sum(x * x for x in self.vector) ** 0.5
+        return float(sum(x * x for x in self.vector) ** 0.5)
 
     def __repr__(self) -> str:
         """Return a concise string representation."""

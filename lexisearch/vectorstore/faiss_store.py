@@ -213,6 +213,7 @@ class FAISSVectorStore(BaseVectorStore):
             ValueError: On duplicate IDs or dimension mismatch.
         """
         self._check_initialized()
+        assert self._index is not None
         ids: list[str] = []
         vectors: list[list[float]] = []
 
@@ -353,7 +354,7 @@ class FAISSVectorStore(BaseVectorStore):
         """
         if not self._initialized or self._index is None:
             return 0
-        return self._index.ntotal
+        return int(self._index.ntotal)
 
     # ------------------------------------------------------------------
     # Search
@@ -376,6 +377,7 @@ class FAISSVectorStore(BaseVectorStore):
             Ordered search results.
         """
         self._check_initialized()
+        assert self._index is not None
         if self._index.ntotal == 0:
             return []
 
@@ -471,6 +473,7 @@ class FAISSVectorStore(BaseVectorStore):
             path: Base path (without extension).
         """
         self._check_initialized()
+        assert self._index is not None
         base = Path(path or self.config.collection_name)
         base.parent.mkdir(parents=True, exist_ok=True)
 

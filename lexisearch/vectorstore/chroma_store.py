@@ -123,6 +123,12 @@ class ChromaVectorStore(BaseVectorStore):
         if not self._initialized or self._collection is None:
             raise RuntimeError("Store not initialized. Call initialize() or use a context manager.")
 
+    @property
+    def _col(self) -> Any:
+        """Return the initialized collection (non-None)."""
+        assert self._collection is not None
+        return self._collection
+
     # ------------------------------------------------------------------
     # Payload helpers
     # ------------------------------------------------------------------
@@ -201,7 +207,7 @@ class ChromaVectorStore(BaseVectorStore):
         documents = [item.chunk.content for item in items]
         metadatas = [self._build_metadata(item) for item in items]
 
-        self._collection.add(
+        self._col.add(
             ids=ids,
             embeddings=embeddings,
             documents=documents,
@@ -228,7 +234,7 @@ class ChromaVectorStore(BaseVectorStore):
         documents = [item.chunk.content for item in items]
         metadatas = [self._build_metadata(item) for item in items]
 
-        self._collection.upsert(
+        self._col.upsert(
             ids=ids,
             embeddings=embeddings,
             documents=documents,
@@ -250,12 +256,12 @@ class ChromaVectorStore(BaseVectorStore):
             return 0
 
         # ChromaDB delete doesn't report count, so check existence first
-        existing = self._collection.get(ids=ids)
+        existing = self._col.get(ids=ids)
         existing_ids = existing.get("ids", [])
         if not existing_ids:
             return 0
 
-        self._collection.delete(ids=existing_ids)
+        self._col.delete(ids=existing_ids)
         return len(existing_ids)
 
     # ------------------------------------------------------------------
@@ -272,7 +278,7 @@ class ChromaVectorStore(BaseVectorStore):
             The stored chunk or ``None``.
         """
         self._check_initialized()
-        result = self._collection.get(
+        result = self._col.get(
             ids=[id],
             include=["embeddings", "documents", "metadatas"],
         )
@@ -293,7 +299,7 @@ class ChromaVectorStore(BaseVectorStore):
             Sorted list of chunk IDs.
         """
         self._check_initialized()
-        result = self._collection.get(include=[])
+        result = self._col.get(include=[])
         return sorted(result.get("ids", []))
 
     def count(self) -> int:
@@ -304,7 +310,7 @@ class ChromaVectorStore(BaseVectorStore):
         """
         if not self._initialized or self._collection is None:
             return 0
-        return self._collection.count()
+        return int(self._collection.count())
 
     # ------------------------------------------------------------------
     # Search
@@ -343,19 +349,19 @@ class ChromaVectorStore(BaseVectorStore):
             Ordered search results.
         """
         self._check_initialized()
-        if self._collection.count() == 0:
+        if self._col.count() == 0:
             return []
 
         where = self._build_where_filter(filters) if filters else None
         query_params: dict[str, Any] = {
             "query_embeddings": [query_vector],
-            "n_results": min(top_k, self._collection.count()),
+            "n_results": min(top_k, self._col.count()),
             "include": ["documents", "metadatas", "distances", "embeddings"],
         }
         if where:
             query_params["where"] = where
 
-        raw = self._collection.query(**query_params)
+        raw = self._col.query(**query_params)
 
         results: list[SearchResult] = []
         ids_list = raw.get("ids", [[]])[0]

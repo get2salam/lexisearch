@@ -13,7 +13,7 @@ from lexisearch.models import Document, DocumentFormat
 
 _PYMUPDF_AVAILABLE: bool
 try:
-    import fitz  # type: ignore[import-untyped]
+    import fitz
 
     _PYMUPDF_AVAILABLE = True
 except ImportError:
@@ -76,7 +76,7 @@ class PDFLoader(BaseLoader):
         if not path.exists():
             raise FileNotFoundError(f"File not found: {path}")
 
-        pdf = fitz.open(str(path))  # type: ignore[union-attr]
+        pdf = fitz.open(str(path))
         try:
             page_count = len(pdf)
 

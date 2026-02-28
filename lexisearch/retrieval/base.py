@@ -199,23 +199,23 @@ class BaseRetriever(ABC):
             return op in (FilterOperator.NEQ, FilterOperator.NOT_IN)
 
         if op is FilterOperator.EQ:
-            return value == target
+            return bool(value == target)
         if op is FilterOperator.NEQ:
-            return value != target
+            return bool(value != target)
         if op is FilterOperator.GT:
-            return value > target
+            return bool(value > target)
         if op is FilterOperator.GTE:
-            return value >= target
+            return bool(value >= target)
         if op is FilterOperator.LT:
-            return value < target
+            return bool(value < target)
         if op is FilterOperator.LTE:
-            return value <= target
+            return bool(value <= target)
         if op is FilterOperator.IN:
-            return value in target
+            return bool(value in target)
         if op is FilterOperator.NOT_IN:
-            return value not in target
+            return bool(value not in target)
         if op is FilterOperator.CONTAINS:
-            return target in value
+            return bool(target in value)
         return False
 
     def get_config(self) -> dict[str, Any]:

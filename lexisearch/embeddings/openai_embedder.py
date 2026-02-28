@@ -11,7 +11,7 @@ from lexisearch.embeddings.base import BaseEmbedder
 
 _OPENAI_AVAILABLE: bool
 try:
-    import openai  # type: ignore[import-untyped]
+    import openai
 
     _OPENAI_AVAILABLE = True
 except ImportError:

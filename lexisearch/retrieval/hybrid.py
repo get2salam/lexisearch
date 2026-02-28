@@ -253,8 +253,8 @@ class HybridRetriever(BaseRetriever):
         retriever_names: list[str] = []
 
         for retriever in self.retrievers:
-            results = retriever.retrieve(query, top_k=prefetch_k, filters=filters, **kwargs)
-            all_results.append(results)
+            sub_results = retriever.retrieve(query, top_k=prefetch_k, filters=filters, **kwargs)
+            all_results.append(sub_results)
             retriever_names.append(retriever.retriever_type().value)
 
         # Fuse results

@@ -13,7 +13,7 @@ from lexisearch.models import Document, DocumentFormat
 
 _BS4_AVAILABLE: bool
 try:
-    from bs4 import BeautifulSoup  # type: ignore[import-untyped]
+    from bs4 import BeautifulSoup
 
     _BS4_AVAILABLE = True
 except ImportError:

@@ -35,7 +35,7 @@ class TextLoader(BaseLoader):
             encoding: File encoding. Defaults to ``"utf-8"``.
             default_metadata: Optional default metadata.
         """
-        super().__init__(default_metadata=default_metadata)  # type: ignore[arg-type]
+        super().__init__(default_metadata=default_metadata)
         self.encoding = encoding
 
     def load(self, source: str | Path) -> list[Document]:

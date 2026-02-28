@@ -411,12 +411,12 @@ class ComponentRegistry:
             return InMemoryVectorStore(**kw)
 
         def _faiss(**kw: Any) -> Any:
-            from lexisearch.vectorstore import FAISSVectorStore
+            from lexisearch.vectorstore.faiss_store import FAISSVectorStore
 
             return FAISSVectorStore(**kw)
 
         def _chroma(**kw: Any) -> Any:
-            from lexisearch.vectorstore import ChromaVectorStore
+            from lexisearch.vectorstore.chroma_store import ChromaVectorStore
 
             return ChromaVectorStore(**kw)
 
@@ -548,11 +548,11 @@ def discover_plugins(
         if plugin_path.is_dir():
             for py_file in sorted(plugin_path.glob("*.py")):
                 try:
-                    spec = importlib.util.spec_from_file_location(py_file.stem, py_file)  # type: ignore[attr-defined]
+                    spec = importlib.util.spec_from_file_location(py_file.stem, py_file)
                     if spec is None or spec.loader is None:
                         continue
-                    module = importlib.util.module_from_spec(spec)  # type: ignore[attr-defined]
-                    spec.loader.exec_module(module)  # type: ignore[union-attr]
+                    module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(module)
                     plugin_registry = getattr(module, "registry", None)
                     if isinstance(plugin_registry, ComponentRegistry):
                         before = added

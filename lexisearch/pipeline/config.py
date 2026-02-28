@@ -289,7 +289,8 @@ class PipelineConfig:
             Nested dict representation of the config.
         """
         raw = asdict(self)
-        return _enums_to_str(raw)
+        result: dict[str, Any] = _enums_to_str(raw)
+        return result
 
     def to_json(self, indent: int = 2) -> str:
         """Serialise the config to a JSON string.

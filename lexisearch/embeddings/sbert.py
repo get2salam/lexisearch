@@ -12,7 +12,7 @@ from lexisearch.embeddings.base import BaseEmbedder
 
 _SBERT_AVAILABLE: bool
 try:
-    from sentence_transformers import SentenceTransformer  # type: ignore[import-untyped]
+    from sentence_transformers import SentenceTransformer
 
     _SBERT_AVAILABLE = True
 except ImportError:
@@ -73,7 +73,8 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         if device is not None:
             kwargs["device"] = device
         self._model: Any = SentenceTransformer(model_name_or_path, **kwargs)
-        self._dims: int = self._model.get_sentence_embedding_dimension()
+        dims = self._model.get_sentence_embedding_dimension()
+        self._dims: int = dims if dims is not None else 0
 
     def embed_text(self, text: str) -> list[float]:
         """Generate an embedding using the Sentence Transformer model.

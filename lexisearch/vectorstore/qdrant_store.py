@@ -226,6 +226,7 @@ class QdrantVectorStore(BaseVectorStore):
             List of chunk IDs.
         """
         self._check_initialized()
+        assert self._client is not None
         if not items:
             return []
 
@@ -280,6 +281,7 @@ class QdrantVectorStore(BaseVectorStore):
             Number of IDs submitted for deletion.
         """
         self._check_initialized()
+        assert self._client is not None
         if not ids:
             return 0
 
@@ -312,6 +314,7 @@ class QdrantVectorStore(BaseVectorStore):
             The stored chunk or ``None``.
         """
         self._check_initialized()
+        assert self._client is not None
 
         results = self._client.scroll(
             collection_name=self.config.collection_name,
@@ -343,6 +346,7 @@ class QdrantVectorStore(BaseVectorStore):
             Sorted list of chunk IDs.
         """
         self._check_initialized()
+        assert self._client is not None
         ids: list[str] = []
         offset = None
 
@@ -411,6 +415,7 @@ class QdrantVectorStore(BaseVectorStore):
             Ordered search results.
         """
         self._check_initialized()
+        assert self._client is not None
         if self.count() == 0:
             return []
 
@@ -467,6 +472,7 @@ class QdrantVectorStore(BaseVectorStore):
             path: Ignored; Qdrant manages snapshot paths internally.
         """
         self._check_initialized()
+        assert self._client is not None
         if self._location != ":memory:":
             self._client.create_snapshot(
                 collection_name=self.config.collection_name,

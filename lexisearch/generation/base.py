@@ -22,7 +22,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from collections.abc import AsyncIterator, Iterator
+    from collections.abc import AsyncIterator, Callable, Iterator
 
 
 class FinishReason(str, Enum):
@@ -341,7 +341,11 @@ class BaseLLM(ABC):
         for chunk in self.stream(request):
             yield chunk
 
-    def _timed_complete(self, fn: Any, request: GenerationRequest) -> GenerationResponse:
+    def _timed_complete(
+        self,
+        fn: Callable[[GenerationRequest], GenerationResponse],
+        request: GenerationRequest,
+    ) -> GenerationResponse:
         """Helper: call *fn* and stamp latency onto the response.
 
         Args:
