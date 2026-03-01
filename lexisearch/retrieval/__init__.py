@@ -24,6 +24,18 @@ Quick start::
 
 from __future__ import annotations
 
+from lexisearch.retrieval.advanced import (
+    AdvancedRetrievalConfig,
+    AdvancedRetrievalResult,
+    BaseAdvancedRetriever,
+    CompositeAdvancedRetriever,
+    HyDERetriever,
+    MultiQueryRetriever,
+    RetrievedChunk,
+    RuleBasedQueryGenerator,
+    StepBackRetriever,
+    reciprocal_rank_fusion,
+)
 from lexisearch.retrieval.base import (
     BaseRetriever,
     FilterOperator,
@@ -53,35 +65,40 @@ from lexisearch.retrieval.reranker import (
 from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 
 __all__ = [
-    # Retrievers
+    "AdvancedRetrievalConfig",
+    "AdvancedRetrievalResult",
     "BM25Config",
     "BM25Retriever",
-    # Query expansion
+    "BaseAdvancedRetriever",
     "BaseQueryExpander",
-    # Rerankers
     "BaseReranker",
-    # Base
     "BaseRetriever",
     "CohereReranker",
+    "CompositeAdvancedRetriever",
     "CrossEncoderReranker",
     "ExpandedQuery",
     "FilterOperator",
     "FusionMethod",
+    "HyDERetriever",
     "HybridConfig",
     "HybridRetriever",
     "LinearScoreReranker",
     "MetadataFilter",
     "MultiQueryExpander",
+    "MultiQueryRetriever",
     "PseudoRelevanceFeedback",
     "QueryDecomposer",
     "RerankedRetriever",
     "RerankerConfig",
+    "RetrievedChunk",
     "RetrieverConfig",
     "RetrieverType",
+    "RuleBasedQueryGenerator",
+    "StepBackRetriever",
     "SynonymExpander",
     "VectorRetriever",
     "VectorRetrieverConfig",
-    # Diversity
     "greedy_diversify",
     "mmr_select",
+    "reciprocal_rank_fusion",
 ]
