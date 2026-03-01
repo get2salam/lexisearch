@@ -1,0 +1,90 @@
+---
+# LexiSearch docker-compose — development + production profiles
+# Usage:
+#   docker compose up                        # mock backends
+#   docker compose --profile openai up       # OpenAI backends
+#   docker compose --profile full up         # OpenAI + external vector stores
+#   docker compose run lexisearch-cli ask "What is RAG?"
+
+version: "3.9"
+
+services:
+  # ------------------------------------------------------------------
+  # Core API server
+  # ------------------------------------------------------------------
+  lexisearch-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: lexisearch:latest
+    container_name: lexisearch-api
+    ports:
+      - "8000:8000"
+    environment:
+      LEXISEARCH_EMBEDDER: ${LEXISEARCH_EMBEDDER:-mock}
+      LEXISEARCH_LLM: ${LEXISEARCH_LLM:-mock}
+      LEXISEARCH_LOG_LEVEL: ${LEXISEARCH_LOG_LEVEL:-INFO}
+      LEXISEARCH_CORS_ORIGINS: ${LEXISEARCH_CORS_ORIGINS:-*}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - lexisearch-net
+
+  # ------------------------------------------------------------------
+  # CLI runner (one-shot commands)
+  # ------------------------------------------------------------------
+  lexisearch-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: lexisearch:latest
+    container_name: lexisearch-cli
+    environment:
+      LEXISEARCH_EMBEDDER: ${LEXISEARCH_EMBEDDER:-mock}
+      LEXISEARCH_LLM: ${LEXISEARCH_LLM:-mock}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    entrypoint: ["python", "-m", "lexisearch.cli"]
+    profiles:
+      - cli
+    networks:
+      - lexisearch-net
+
+  # ------------------------------------------------------------------
+  # Development server with hot-reload
+  # ------------------------------------------------------------------
+  lexisearch-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: lexisearch-dev
+    ports:
+      - "8001:8000"
+    environment:
+      LEXISEARCH_EMBEDDER: mock
+      LEXISEARCH_LLM: mock
+      LEXISEARCH_LOG_LEVEL: DEBUG
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - .:/app
+    command: >
+      uvicorn lexisearch.api.server:app
+      --host 0.0.0.0 --port 8000 --reload
+      --log-level debug
+    profiles:
+      - dev
+    networks:
+      - lexisearch-net
+
+networks:
+  lexisearch-net:
+    driver: bridge
