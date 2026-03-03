@@ -186,7 +186,7 @@ def create_app(*, title: str = "LexiSearch API", version: str | None = None) -> 
 
     # Global exception handler
     @app.exception_handler(Exception)
-    async def _unhandled(request: Request, exc: Exception) -> JSONResponse:  # type: ignore[misc]
+    async def _unhandled(request: Request, exc: Exception) -> JSONResponse:
         logger.exception("Unhandled error: %s", exc)
         return JSONResponse(
             status_code=500,
@@ -225,4 +225,4 @@ def create_app(*, title: str = "LexiSearch API", version: str | None = None) -> 
 try:
     app = create_app()
 except ImportError:  # pragma: no cover
-    app = None  # type: ignore[assignment]
+    app = None

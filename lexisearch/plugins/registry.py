@@ -261,7 +261,7 @@ class PluginRegistry:
                 continue
             module = importlib.util.module_from_spec(spec)
             try:
-                spec.loader.exec_module(module)  # type: ignore[union-attr]
+                spec.loader.exec_module(module)
             except Exception as exc:
                 logger.warning("Skipping '%s': %s", py_file, exc)
                 continue

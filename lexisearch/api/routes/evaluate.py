@@ -65,7 +65,7 @@ def _make_evaluate_router() -> Any:
     router = APIRouter(prefix="/evaluate", tags=["evaluate"])
 
     @router.post("", response_model=EvalResult)
-    async def evaluate(body: EvalBody) -> EvalResult:  # type: ignore[misc]
+    async def evaluate(body: EvalBody) -> EvalResult:
         """Evaluate a batch of RAG samples using built-in metrics."""
         # Resolve requested metrics
         requested = [m.lower() for m in body.metrics] if body.metrics else list(_all_metrics)
@@ -123,7 +123,7 @@ def _make_evaluate_router() -> Any:
         )
 
     @router.get("/metrics", response_model=None)
-    async def list_metrics() -> dict[str, Any]:  # type: ignore[misc]
+    async def list_metrics() -> dict[str, Any]:
         """List all available evaluation metric names."""
         return {"metrics": list(_all_metrics.keys())}
 

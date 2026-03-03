@@ -154,7 +154,10 @@ def _build_cli() -> Any:
                 try:
                     loader = TextLoader()
                     doc = loader.load(str(f))
-                    docs.append(doc)
+                    if isinstance(doc, list):
+                        docs.extend(doc)
+                    else:
+                        docs.append(doc)
                 except Exception as e:
                     click.echo(f"  ⚠  Skipping {f}: {e}", err=True)
 

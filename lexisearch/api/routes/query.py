@@ -40,7 +40,7 @@ def _make_query_router() -> Any:
     router = APIRouter(prefix="/query", tags=["query"])
 
     @router.post("", response_model=QueryResult)
-    async def query(body: QueryBody) -> QueryResult:  # type: ignore[misc]
+    async def query(body: QueryBody) -> QueryResult:
         """Run a full RAG pipeline query and return a grounded answer."""
         store = get_pipeline_store()
         runner = store.get("runner")
@@ -76,7 +76,7 @@ def _make_query_router() -> Any:
         )
 
     @router.get("/search", response_model=None)
-    async def search(q: str, top_k: int = 5) -> dict[str, Any]:  # type: ignore[misc]
+    async def search(q: str, top_k: int = 5) -> dict[str, Any]:
         """Lightweight keyword/semantic search (no generation step)."""
         store = get_pipeline_store()
         runner = store.get("runner")

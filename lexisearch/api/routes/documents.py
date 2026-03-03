@@ -44,7 +44,7 @@ def _make_documents_router() -> Any:
     router = APIRouter(prefix="/documents", tags=["documents"])
 
     @router.post("", response_model=IngestResult)
-    async def ingest_document(body: IngestBody) -> IngestResult:  # type: ignore[misc]
+    async def ingest_document(body: IngestBody) -> IngestResult:
         """Ingest a document into the RAG pipeline index."""
         store = get_pipeline_store()
         runner = store.get("runner")
@@ -77,7 +77,7 @@ def _make_documents_router() -> Any:
         )
 
     @router.delete("/{doc_id}", response_model=DeleteResult)
-    async def delete_document(doc_id: str) -> DeleteResult:  # type: ignore[misc]
+    async def delete_document(doc_id: str) -> DeleteResult:
         """Remove a document (and its chunks) from the index."""
         store = get_pipeline_store()
         runner = store.get("runner")
@@ -85,7 +85,7 @@ def _make_documents_router() -> Any:
             raise HTTPException(status_code=503, detail="Pipeline not initialised")
 
         try:
-            vs = runner.pipeline.vector_store  # type: ignore[attr-defined]
+            vs = runner.pipeline.vector_store
             vs.delete_by_metadata({"doc_id": doc_id})
         except Exception:
             # Best-effort deletion; not all vector stores support metadata delete

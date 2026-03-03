@@ -19,7 +19,7 @@ def _make_health_router() -> Any:
     router = APIRouter(prefix="/health", tags=["health"])
 
     @router.get("", response_model=None)
-    async def health() -> dict[str, Any]:  # type: ignore[misc]
+    async def health() -> dict[str, Any]:
         """Liveness probe — always returns 200 when the server is running."""
         store = get_pipeline_store()
         components: dict[str, str] = {
@@ -35,7 +35,7 @@ def _make_health_router() -> Any:
         return resp.__dict__
 
     @router.get("/stats", response_model=None)
-    async def index_stats() -> dict[str, Any]:  # type: ignore[misc]
+    async def index_stats() -> dict[str, Any]:
         """Return statistics about the in-memory vector index."""
         store = get_pipeline_store()
         runner = store.get("runner")
@@ -44,7 +44,7 @@ def _make_health_router() -> Any:
         dim = 0
         if runner is not None:
             try:
-                vs = runner.pipeline.vector_store  # type: ignore[attr-defined]
+                vs = runner.pipeline.vector_store
                 total_chunks = len(vs)
                 dim = vs.embedding_dim if hasattr(vs, "embedding_dim") else 0
             except Exception:
