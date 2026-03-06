@@ -31,11 +31,13 @@ from lexisearch.vectorstore.metrics import (
     euclidean_distance,
     l2_normalize,
 )
+from lexisearch.vectorstore.namespace import NamespacedVectorStore
 
 __all__ = [
     "BaseVectorStore",
     "DistanceMetric",
     "InMemoryVectorStore",
+    "NamespacedVectorStore",
     "VectorStoreConfig",
     "compute_pairwise_scores",
     "compute_score",
