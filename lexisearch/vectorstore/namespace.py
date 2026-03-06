@@ -155,7 +155,7 @@ class NamespacedVectorStore:
     def delete(self, ids: list[str]) -> int:
         """Delete items by their *unqualified* IDs."""
         qualified_ids = [_qualify(self.namespace, i) for i in ids]
-        return self._store.delete(qualified_ids)
+        return int(self._store.delete(qualified_ids))
 
     # ------------------------------------------------------------------
     # Read operations
