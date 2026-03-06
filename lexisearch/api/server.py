@@ -198,10 +198,12 @@ def create_app(*, title: str = "LexiSearch API", version: str | None = None) -> 
     from lexisearch.api.routes.evaluate import _make_evaluate_router
     from lexisearch.api.routes.health import _make_health_router
     from lexisearch.api.routes.query import _make_query_router
+    from lexisearch.api.routes.stream import _make_stream_router
 
     app.include_router(_make_health_router())
     app.include_router(_make_documents_router())
     app.include_router(_make_query_router())
+    app.include_router(_make_stream_router())
     app.include_router(_make_evaluate_router())
 
     @app.get("/", include_in_schema=False)
