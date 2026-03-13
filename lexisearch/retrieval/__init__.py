@@ -62,6 +62,12 @@ from lexisearch.retrieval.reranker import (
     RerankedRetriever,
     RerankerConfig,
 )
+from lexisearch.retrieval.compression import (
+    BaseCompressor,
+    CompressedChunk,
+    KeywordCompressor,
+    SentenceCompressor,
+)
 from lexisearch.retrieval.router import (
     IntentClassification,
     IntentClassifier,
@@ -105,11 +111,15 @@ __all__ = [
     "SynonymExpander",
     "VectorRetriever",
     "VectorRetrieverConfig",
+    "BaseCompressor",
+    "CompressedChunk",
     "IntentClassification",
     "IntentClassifier",
+    "KeywordCompressor",
     "QueryIntent",
     "QueryRouter",
     "RoutingResult",
+    "SentenceCompressor",
     "greedy_diversify",
     "mmr_select",
     "reciprocal_rank_fusion",
