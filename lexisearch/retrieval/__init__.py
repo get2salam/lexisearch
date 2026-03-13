@@ -62,6 +62,13 @@ from lexisearch.retrieval.reranker import (
     RerankedRetriever,
     RerankerConfig,
 )
+from lexisearch.retrieval.router import (
+    IntentClassification,
+    IntentClassifier,
+    QueryIntent,
+    QueryRouter,
+    RoutingResult,
+)
 from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 
 __all__ = [
@@ -98,6 +105,11 @@ __all__ = [
     "SynonymExpander",
     "VectorRetriever",
     "VectorRetrieverConfig",
+    "IntentClassification",
+    "IntentClassifier",
+    "QueryIntent",
+    "QueryRouter",
+    "RoutingResult",
     "greedy_diversify",
     "mmr_select",
     "reciprocal_rank_fusion",
