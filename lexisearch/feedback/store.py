@@ -87,9 +87,7 @@ class InMemoryFeedbackStore:
         """
         return [f for f in self._feedback if f.query == query]
 
-    def get_for_query_and_chunk(
-        self, query: str, chunk_id: str
-    ) -> list[RetrievalFeedback]:
+    def get_for_query_and_chunk(self, query: str, chunk_id: str) -> list[RetrievalFeedback]:
         """Return feedback events for a specific (query, chunk) pair.
 
         Args:

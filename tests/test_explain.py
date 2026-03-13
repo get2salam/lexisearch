@@ -4,21 +4,17 @@ from __future__ import annotations
 
 import pytest
 
+from lexisearch.retrieval.advanced import (
+    AdvancedRetrievalResult,
+    RetrievedChunk,
+)
 from lexisearch.retrieval.explain import (
     ChunkExplanation,
-    RetrievalExplanation,
     RetrievalExplainer,
-    SubQueryContribution,
+    RetrievalExplanation,
     TermOverlap,
     _keywords,
 )
-from lexisearch.retrieval.advanced import (
-    AdvancedRetrievalConfig,
-    AdvancedRetrievalResult,
-    MultiQueryRetriever,
-    RetrievedChunk,
-)
-
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -82,7 +78,11 @@ class TestRetrievalExplainer:
             _chunk("c2", "The weather today is sunny and warm.", 0.3),
             _chunk("c3", "Offer and acceptance form the basis of a valid contract.", 0.6),
         ]
-        self.result = _result(self.query, self.chunks, sub_queries=[self.query, "consideration contract"])
+        self.result = _result(
+            self.query,
+            self.chunks,
+            sub_queries=[self.query, "consideration contract"],
+        )
 
     def test_returns_retrieval_explanation(self):
         exp = self.explainer.explain(self.result)
@@ -210,7 +210,9 @@ class TestExplainScore:
         assert exp.final_score == pytest.approx(0.77)
 
     def test_term_overlap_computed(self):
-        exp = self.explainer.explain_score("consideration contract", "Consideration in contract.", 0.5)
+        exp = self.explainer.explain_score(
+            "consideration contract", "Consideration in contract.", 0.5
+        )
         assert "consideration" in exp.term_overlap.matched_terms
         assert "contract" in exp.term_overlap.matched_terms
 

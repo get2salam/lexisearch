@@ -4,6 +4,14 @@ from __future__ import annotations
 
 import pytest
 
+from lexisearch.retrieval.advanced import (
+    AdvancedRetrievalConfig,
+    CompositeAdvancedRetriever,
+    HyDERetriever,
+    MultiQueryRetriever,
+    RetrievedChunk,
+    StepBackRetriever,
+)
 from lexisearch.retrieval.router import (
     IntentClassification,
     IntentClassifier,
@@ -11,15 +19,6 @@ from lexisearch.retrieval.router import (
     QueryRouter,
     RoutingResult,
 )
-from lexisearch.retrieval.advanced import (
-    AdvancedRetrievalConfig,
-    HyDERetriever,
-    MultiQueryRetriever,
-    RetrievedChunk,
-    StepBackRetriever,
-    CompositeAdvancedRetriever,
-)
-
 
 # ---------------------------------------------------------------------------
 # Helpers

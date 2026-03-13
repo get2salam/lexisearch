@@ -140,9 +140,7 @@ class MarkdownLoader(BaseLoader):
         extra_fm = {k: v for k, v in frontmatter.items() if k not in {"title", "author"}}
 
         if self.split_sections:
-            return self._split_into_sections(
-                Path(source), body, str(title), author, extra_fm
-            )
+            return self._split_into_sections(Path(source), body, str(title), author, extra_fm)
 
         metadata = self._build_metadata(
             source=source,
@@ -171,7 +169,7 @@ class MarkdownLoader(BaseLoader):
             return {}, text
 
         fm_block = match.group(1)
-        body = text[match.end():]
+        body = text[match.end() :]
 
         frontmatter: dict[str, Any] = {}
         for line in fm_block.splitlines():

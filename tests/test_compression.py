@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
+from typing import ClassVar
 
+from lexisearch.retrieval.advanced import RetrievedChunk
 from lexisearch.retrieval.compression import (
     BaseCompressor,
     CompressedChunk,
@@ -12,8 +13,6 @@ from lexisearch.retrieval.compression import (
     _query_keywords,
     _sentence_score,
 )
-from lexisearch.retrieval.advanced import RetrievedChunk
-
 
 # ---------------------------------------------------------------------------
 # Helper
@@ -77,7 +76,8 @@ class TestSentenceScore:
         assert _sentence_score("Any sentence.", set()) == 0.0
 
     def test_score_in_range(self):
-        score = _sentence_score("Offer and acceptance form a valid contract.", {"offer", "acceptance", "contract"})
+        kws = {"offer", "acceptance", "contract"}
+        score = _sentence_score("Offer and acceptance form a valid contract.", kws)
         assert 0.0 <= score <= 1.0
 
 
@@ -192,7 +192,9 @@ class TestKeywordCompressor:
         assert result.compressed_content
 
     def test_metadata_preserved(self):
-        chunk = RetrievedChunk(chunk_id="c1", content=_LEGAL_TEXT, score=0.8, metadata={"source": "test"})
+        chunk = RetrievedChunk(
+            chunk_id="c1", content=_LEGAL_TEXT, score=0.8, metadata={"source": "test"}
+        )
         result = self.compressor.compress(_QUERY, [chunk])[0]
         assert result.metadata == {"source": "test"}
 
@@ -212,7 +214,7 @@ class TestDuckTypingSupport:
         class FakeChunk:
             chunk_id = "fake-1"
             content = "Consideration is the price of a promise in contract law."
-            metadata = {}
+            metadata: ClassVar[dict[str, str]] = {}
 
         compressor = SentenceCompressor(threshold=0.0, min_sentences=1)
         results = compressor.compress("What is consideration?", [FakeChunk()])

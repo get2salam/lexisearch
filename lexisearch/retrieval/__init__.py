@@ -24,6 +24,12 @@ Quick start::
 
 from __future__ import annotations
 
+from lexisearch.retrieval.adaptive import (
+    AdaptiveConfig,
+    AdaptiveRetriever,
+    ExpansionStep,
+    adaptive_retriever,
+)
 from lexisearch.retrieval.advanced import (
     AdvancedRetrievalConfig,
     AdvancedRetrievalResult,
@@ -44,6 +50,19 @@ from lexisearch.retrieval.base import (
     RetrieverType,
 )
 from lexisearch.retrieval.bm25 import BM25Config, BM25Retriever
+from lexisearch.retrieval.compression import (
+    BaseCompressor,
+    CompressedChunk,
+    KeywordCompressor,
+    SentenceCompressor,
+)
+from lexisearch.retrieval.explain import (
+    ChunkExplanation,
+    RetrievalExplainer,
+    RetrievalExplanation,
+    SubQueryContribution,
+    TermOverlap,
+)
 from lexisearch.retrieval.hybrid import FusionMethod, HybridConfig, HybridRetriever
 from lexisearch.retrieval.mmr import greedy_diversify, mmr_select
 from lexisearch.retrieval.query import (
@@ -62,19 +81,6 @@ from lexisearch.retrieval.reranker import (
     RerankedRetriever,
     RerankerConfig,
 )
-from lexisearch.retrieval.explain import (
-    ChunkExplanation,
-    RetrievalExplanation,
-    RetrievalExplainer,
-    SubQueryContribution,
-    TermOverlap,
-)
-from lexisearch.retrieval.compression import (
-    BaseCompressor,
-    CompressedChunk,
-    KeywordCompressor,
-    SentenceCompressor,
-)
 from lexisearch.retrieval.router import (
     IntentClassification,
     IntentClassifier,
@@ -85,53 +91,57 @@ from lexisearch.retrieval.router import (
 from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 
 __all__ = [
+    "AdaptiveConfig",
+    "AdaptiveRetriever",
     "AdvancedRetrievalConfig",
     "AdvancedRetrievalResult",
     "BM25Config",
     "BM25Retriever",
     "BaseAdvancedRetriever",
+    "BaseCompressor",
     "BaseQueryExpander",
     "BaseReranker",
     "BaseRetriever",
+    "ChunkExplanation",
     "CohereReranker",
     "CompositeAdvancedRetriever",
+    "CompressedChunk",
     "CrossEncoderReranker",
     "ExpandedQuery",
+    "ExpansionStep",
     "FilterOperator",
     "FusionMethod",
     "HyDERetriever",
     "HybridConfig",
     "HybridRetriever",
+    "IntentClassification",
+    "IntentClassifier",
+    "KeywordCompressor",
     "LinearScoreReranker",
     "MetadataFilter",
     "MultiQueryExpander",
     "MultiQueryRetriever",
     "PseudoRelevanceFeedback",
     "QueryDecomposer",
+    "QueryIntent",
+    "QueryRouter",
     "RerankedRetriever",
     "RerankerConfig",
+    "RetrievalExplainer",
+    "RetrievalExplanation",
     "RetrievedChunk",
     "RetrieverConfig",
     "RetrieverType",
+    "RoutingResult",
     "RuleBasedQueryGenerator",
+    "SentenceCompressor",
     "StepBackRetriever",
+    "SubQueryContribution",
     "SynonymExpander",
+    "TermOverlap",
     "VectorRetriever",
     "VectorRetrieverConfig",
-    "BaseCompressor",
-    "ChunkExplanation",
-    "CompressedChunk",
-    "IntentClassification",
-    "IntentClassifier",
-    "KeywordCompressor",
-    "QueryIntent",
-    "RetrievalExplanation",
-    "RetrievalExplainer",
-    "SubQueryContribution",
-    "TermOverlap",
-    "QueryRouter",
-    "RoutingResult",
-    "SentenceCompressor",
+    "adaptive_retriever",
     "greedy_diversify",
     "mmr_select",
     "reciprocal_rank_fusion",

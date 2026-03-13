@@ -124,7 +124,7 @@ class ConversationMemory:
         non_system = [m for m in msgs if m.role != Role.SYSTEM]
 
         # Limit to turns x 2 (each turn = 1 user + 1 assistant)
-        recent = non_system[-(turns * 2):]
+        recent = non_system[-(turns * 2) :]
         return system + recent
 
     def format_context(self, max_turns: int | None = None) -> str:
@@ -140,8 +140,7 @@ class ConversationMemory:
             Multi-line string with role-prefixed messages.
         """
         return "\n".join(
-            f"{msg.role.value.upper()}: {msg.content}"
-            for msg in self.get_context(max_turns)
+            f"{msg.role.value.upper()}: {msg.content}" for msg in self.get_context(max_turns)
         )
 
     def clear(self) -> None:

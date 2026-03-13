@@ -32,7 +32,6 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-
 # ---------------------------------------------------------------------------
 # Token utilities (shared with compression module conceptually)
 # ---------------------------------------------------------------------------

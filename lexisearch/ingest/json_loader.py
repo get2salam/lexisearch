@@ -75,9 +75,7 @@ class JSONLoader(BaseLoader):
             raise ValueError(f"Unsupported extension: {path.suffix!r}. Expected .json or .jsonl")
 
         records = (
-            self._load_jsonl(path)
-            if path.suffix.lower() == ".jsonl"
-            else self._load_json(path)
+            self._load_jsonl(path) if path.suffix.lower() == ".jsonl" else self._load_json(path)
         )
 
         documents: list[Document] = []

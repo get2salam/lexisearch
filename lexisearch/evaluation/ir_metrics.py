@@ -28,9 +28,8 @@ Example::
 from __future__ import annotations
 
 import math
-from collections.abc import Sequence
+from collections.abc import Sequence  # noqa: TC003
 from dataclasses import dataclass, field
-
 
 # ---------------------------------------------------------------------------
 # Per-query metrics
@@ -201,8 +200,7 @@ def mrr(
     if not all_retrieved:
         return 0.0
     rr_sum = sum(
-        reciprocal_rank(retr, rel)
-        for retr, rel in zip(all_retrieved, all_relevant)
+        reciprocal_rank(retr, rel) for retr, rel in zip(all_retrieved, all_relevant, strict=False)
     )
     return rr_sum / len(all_retrieved)
 
@@ -227,7 +225,7 @@ def mean_average_precision(
         return 0.0
     ap_sum = sum(
         average_precision(retr, rel, k=k)
-        for retr, rel in zip(all_retrieved, all_relevant)
+        for retr, rel in zip(all_retrieved, all_relevant, strict=False)
     )
     return ap_sum / len(all_retrieved)
 
@@ -304,7 +302,7 @@ def compute_ir_metrics(
     per_query: list[dict[str, float]] = []
     recall_sum = prec_sum = ndcg_sum = 0.0
 
-    for retrieved, relevant in zip(all_retrieved, all_relevant):
+    for retrieved, relevant in zip(all_retrieved, all_relevant, strict=False):
         r = recall_at_k(retrieved, relevant, k=k)
         p = precision_at_k(retrieved, relevant, k=k)
         nd = ndcg_at_k(retrieved, relevant, k=k)

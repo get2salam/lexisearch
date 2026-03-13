@@ -40,7 +40,7 @@ import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -95,14 +95,17 @@ class IntentClassifier:
     than guessing, so the router falls back to the safest strategy.
     """
 
-    _DEFINITIONAL_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-        (re.compile(r"\b(define|definition of|what (is|are|does)\b.{0,20}\bmean)\b"), "definition trigger"),
+    _DEFINITIONAL_PATTERNS: ClassVar[list[tuple[re.Pattern[str], str]]] = [
+        (
+            re.compile(r"\b(define|definition of|what (is|are|does)\b.{0,20}\bmean)\b"),
+            "definition trigger",
+        ),
         (re.compile(r"\bmeaning of\b"), "meaning-of"),
         (re.compile(r"\bexplain (the )?(concept|term|doctrine|principle)\b"), "explain-concept"),
         (re.compile(r"\bwhat is (a |an |the )?\w+\??$"), "what-is short"),
     ]
 
-    _PROCEDURAL_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    _PROCEDURAL_PATTERNS: ClassVar[list[tuple[re.Pattern[str], str]]] = [
         (re.compile(r"\bhow (do|does|can|should|to)\b"), "how-to"),
         (re.compile(r"\bprocedure (for|to|of)\b"), "procedure-for"),
         (re.compile(r"\bsteps? (to|for|in)\b"), "steps-to"),
@@ -111,28 +114,36 @@ class IntentClassifier:
         (re.compile(r"\bapply (for|to)\b"), "apply-for"),
     ]
 
-    _COMPARATIVE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    _COMPARATIVE_PATTERNS: ClassVar[list[tuple[re.Pattern[str], str]]] = [
         (re.compile(r"\b(difference|distinguish|compare|contrast)\b"), "compare-trigger"),
         (re.compile(r"\bvs\.?\b|\bversus\b"), "vs"),
         (re.compile(r"\b(similar(ity)?|dissimilar(ity)?)\b"), "similarity"),
         (re.compile(r"\bwhat.{0,30}(differ|distinction)\b"), "what-differs"),
     ]
 
-    _MULTI_HOP_PATTERNS: list[tuple[re.Pattern[str], str]] = [
-        (re.compile(r"\b(all|every|list (of|all))\b.*\b(cases?|statutes?|rulings?|judgments?)\b"), "list-all"),
+    _MULTI_HOP_PATTERNS: ClassVar[list[tuple[re.Pattern[str], str]]] = [
+        (
+            re.compile(
+                r"\b(all|every|list (of|all))\b.*\b(cases?|statutes?|rulings?|judgments?)\b"
+            ),
+            "list-all",
+        ),
         (re.compile(r"\blandmark\b"), "landmark"),
         (re.compile(r"\bsince \d{4}\b|\bafter \d{4}\b|\bbefore \d{4}\b"), "temporal range"),
         (re.compile(r"\band.{1,30}and\b"), "multi-and conjunctions"),
         (re.compile(r"\bmultiple\b.{0,20}\b(courts?|jurisdictions?|statutes?)\b"), "multi-source"),
     ]
 
-    _FACTUAL_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    _FACTUAL_PATTERNS: ClassVar[list[tuple[re.Pattern[str], str]]] = [
         (re.compile(r"\bwhat (is|are|was|were)\b"), "what-is/was"),
         (re.compile(r"\bwho (is|was|can|must|shall)\b"), "who-is"),
         (re.compile(r"\bwhen (is|was|does|did|can|must)\b"), "when"),
         (re.compile(r"\bwhere (is|are|can|must)\b"), "where"),
         (re.compile(r"\b(penalty|punishment|sentence|fine) (for|of|under)\b"), "penalty-for"),
-        (re.compile(r"\bmaximum|minimum\b.{0,20}\b(term|sentence|fine|penalty)\b"), "max/min sentence"),
+        (
+            re.compile(r"\bmaximum|minimum\b.{0,20}\b(term|sentence|fine|penalty)\b"),
+            "max/min sentence",
+        ),
     ]
 
     def classify(self, query: str) -> IntentClassification:
@@ -206,8 +217,8 @@ class QueryRouter:
     config:
         Shared :class:`~lexisearch.retrieval.advanced.AdvancedRetrievalConfig`.
 
-    Example
-    -------
+    Example:
+    --------
     ::
 
         router = QueryRouter(base_retriever=my_retriever)

@@ -101,7 +101,7 @@ class QueryContextualizer:
             return query
 
         non_system = [m for m in history.messages if m.role != Role.SYSTEM]
-        recent = non_system[-(self.context_window * 2):]
+        recent = non_system[-(self.context_window * 2) :]
         if not recent:
             return query
 
