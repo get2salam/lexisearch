@@ -37,6 +37,17 @@ from lexisearch.evaluation.base import (
     SampleResult,
 )
 from lexisearch.evaluation.evaluator import Evaluator
+from lexisearch.evaluation.ir_metrics import (
+    RetrievalEvalReport,
+    average_precision,
+    compute_ir_metrics,
+    mean_average_precision,
+    mrr,
+    ndcg_at_k,
+    precision_at_k,
+    recall_at_k,
+    reciprocal_rank,
+)
 from lexisearch.evaluation.metrics import (
     AnswerRelevanceMetric,
     ContextPrecisionMetric,
@@ -48,6 +59,15 @@ from lexisearch.evaluation.metrics import (
 
 __all__ = [
     "AnswerRelevanceMetric",
+    "RetrievalEvalReport",
+    "average_precision",
+    "compute_ir_metrics",
+    "mean_average_precision",
+    "mrr",
+    "ndcg_at_k",
+    "precision_at_k",
+    "recall_at_k",
+    "reciprocal_rank",
     "BaseMetric",
     "ContextPrecisionMetric",
     "ContextRecallMetric",
