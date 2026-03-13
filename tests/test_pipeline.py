@@ -246,16 +246,16 @@ class TestPipelineConfig:
         parsed = json.loads(j)
         assert parsed["name"] == "json-test"
 
-    def test_save_and_load(self, tmp_path: Path):
+    def test_save_and_load(self, tmp_dir: Path):
         cfg = PipelineConfig(name="saved")
-        fpath = tmp_path / "pipeline.json"
+        fpath = tmp_dir / "pipeline.json"
         cfg.save(fpath)
         loaded = load_config(fpath)
         assert loaded.name == "saved"
 
-    def test_load_config_not_found(self, tmp_path: Path):
+    def test_load_config_not_found(self, tmp_dir: Path):
         with pytest.raises(FileNotFoundError):
-            load_config(tmp_path / "missing.json")
+            load_config(tmp_dir / "missing.json")
 
     def test_from_dict(self):
         d = {
@@ -388,12 +388,12 @@ class TestComponentRegistry:
         added = discover_plugins(reg, plugins_dir=None)
         assert added == 0
 
-    def test_discover_plugins_empty_dir(self, tmp_path: Path):
+    def test_discover_plugins_empty_dir(self, tmp_dir: Path):
         reg = ComponentRegistry(auto_register_builtins=False)
-        added = discover_plugins(reg, plugins_dir=str(tmp_path))
+        added = discover_plugins(reg, plugins_dir=str(tmp_dir))
         assert added == 0
 
-    def test_discover_plugins_from_file(self, tmp_path: Path):
+    def test_discover_plugins_from_file(self, tmp_dir: Path):
         plugin_code = """
 from lexisearch.pipeline.registry import ComponentRegistry, ComponentKind, ComponentInfo
 from lexisearch.generation import MockLLM
@@ -401,9 +401,9 @@ from lexisearch.generation import MockLLM
 registry = ComponentRegistry(auto_register_builtins=False)
 registry.register(ComponentKind.LLM, "plugin-llm", MockLLM, "Plugin LLM")
 """
-        (tmp_path / "my_plugin.py").write_text(plugin_code, encoding="utf-8")
+        (tmp_dir / "my_plugin.py").write_text(plugin_code, encoding="utf-8")
         reg = ComponentRegistry(auto_register_builtins=False)
-        added = discover_plugins(reg, plugins_dir=str(tmp_path))
+        added = discover_plugins(reg, plugins_dir=str(tmp_dir))
         assert added == 1
         assert reg.has(ComponentKind.LLM, "plugin-llm")
 

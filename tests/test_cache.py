@@ -277,43 +277,43 @@ class TestInMemoryCache:
 
 
 class TestDiskCache:
-    def test_set_and_get(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_set_and_get(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         cache.set("k", {"data": [1, 2, 3]})
         assert cache.get("k") == {"data": [1, 2, 3]}
 
-    def test_miss_returns_none(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_miss_returns_none(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         assert cache.get("nonexistent") is None
 
-    def test_ttl_expiry(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_ttl_expiry(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         cache.set("temp", "value", ttl=0.05)
         time.sleep(0.1)
         assert cache.get("temp") is None
 
-    def test_persistent_across_instances(self, tmp_path: Path) -> None:
-        cache1 = DiskCache(tmp_path)
+    def test_persistent_across_instances(self, tmp_dir: Path) -> None:
+        cache1 = DiskCache(tmp_dir)
         cache1.set("k", "persisted")
-        cache2 = DiskCache(tmp_path)
+        cache2 = DiskCache(tmp_dir)
         assert cache2.get("k") == "persisted"
 
-    def test_delete(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_delete(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         cache.set("k", "v")
         assert cache.delete("k") is True
         assert cache.get("k") is None
 
-    def test_clear(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_clear(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         cache.set("a", 1)
         cache.set("b", 2)
         count = cache.clear()
         assert count == 2
         assert len(cache) == 0
 
-    def test_lru_eviction(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path, max_size=2)
+    def test_lru_eviction(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir, max_size=2)
         cache.set("a", 1)
         cache.set("b", 2)
         cache.set("c", 3)  # evicts LRU ("a")
@@ -321,8 +321,8 @@ class TestDiskCache:
         assert cache.get("b") is not None
         assert cache.get("c") is not None
 
-    def test_stats(self, tmp_path: Path) -> None:
-        cache = DiskCache(tmp_path)
+    def test_stats(self, tmp_dir: Path) -> None:
+        cache = DiskCache(tmp_dir)
         cache.set("k", "v")
         cache.get("k")
         cache.get("missing")

@@ -100,8 +100,8 @@ class TestHelp:
 
 
 class TestIndexCommand:
-    def test_index_text_file(self, runner: CliRunner, tmp_path: Path) -> None:
-        doc = tmp_path / "sample.txt"
+    def test_index_text_file(self, runner: CliRunner, tmp_dir: Path) -> None:
+        doc = tmp_dir / "sample.txt"
         doc.write_text("Retrieval-Augmented Generation combines search with LLMs.")
 
         mock_obj = _mock_runner_obj()
@@ -112,21 +112,21 @@ class TestIndexCommand:
         assert "1 document" in result.output
         mock_obj.ingest_documents.assert_called_once()
 
-    def test_index_multiple_files(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_index_multiple_files(self, runner: CliRunner, tmp_dir: Path) -> None:
         for i in range(3):
-            (tmp_path / f"doc{i}.txt").write_text(f"Document number {i} content.")
+            (tmp_dir / f"doc{i}.txt").write_text(f"Document number {i} content.")
 
         mock_obj = _mock_runner_obj()
         with patch("lexisearch.cli.main._get_runner", return_value=mock_obj):
-            result = runner.invoke(cli, ["index", str(tmp_path), "--glob", "*.txt"])
+            result = runner.invoke(cli, ["index", str(tmp_dir), "--glob", "*.txt"])
 
         assert result.exit_code == 0
         assert "3 document" in result.output
 
-    def test_index_directory_no_matches(self, runner: CliRunner, tmp_path: Path) -> None:
+    def test_index_directory_no_matches(self, runner: CliRunner, tmp_dir: Path) -> None:
         mock_obj = _mock_runner_obj()
         with patch("lexisearch.cli.main._get_runner", return_value=mock_obj):
-            result = runner.invoke(cli, ["index", str(tmp_path), "--glob", "*.pdf"])
+            result = runner.invoke(cli, ["index", str(tmp_dir), "--glob", "*.pdf"])
 
         assert "No documents found" in result.output
 
@@ -245,8 +245,8 @@ class TestEvalCommand:
             for s in samples:
                 fh.write(json.dumps(s) + "\n")
 
-    def test_eval_basic(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "samples.jsonl"
+    def test_eval_basic(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "samples.jsonl"
         self._write_jsonl(
             dataset,
             [
@@ -262,8 +262,8 @@ class TestEvalCommand:
         assert result.exit_code == 0
         assert "Evaluation Results" in result.output
 
-    def test_eval_specific_metrics(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "samples.jsonl"
+    def test_eval_specific_metrics(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "samples.jsonl"
         self._write_jsonl(
             dataset,
             [
@@ -279,8 +279,8 @@ class TestEvalCommand:
         assert result.exit_code == 0
         assert "exact_match" in result.output
 
-    def test_eval_json_output(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "samples.jsonl"
+    def test_eval_json_output(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "samples.jsonl"
         self._write_jsonl(
             dataset,
             [
@@ -297,8 +297,8 @@ class TestEvalCommand:
         parsed = json.loads(result.output)
         assert "aggregate" in parsed
 
-    def test_eval_unknown_metric_exits(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "samples.jsonl"
+    def test_eval_unknown_metric_exits(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "samples.jsonl"
         self._write_jsonl(
             dataset,
             [{"question": "q", "contexts": ["c"], "answer": "a"}],
@@ -306,8 +306,8 @@ class TestEvalCommand:
         result = runner.invoke(cli, ["eval", str(dataset), "--metrics", "bogus_metric"])
         assert result.exit_code != 0
 
-    def test_eval_skips_invalid_lines(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "samples.jsonl"
+    def test_eval_skips_invalid_lines(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "samples.jsonl"
         with dataset.open("w") as fh:
             fh.write("not valid json\n")
             fh.write(
@@ -326,14 +326,14 @@ class TestEvalCommand:
         # Should succeed with 1 valid sample
         assert result.exit_code == 0
 
-    def test_eval_empty_file_exits(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "empty.jsonl"
+    def test_eval_empty_file_exits(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "empty.jsonl"
         dataset.write_text("")
         result = runner.invoke(cli, ["eval", str(dataset)])
         assert result.exit_code != 0
 
-    def test_eval_multiple_samples(self, runner: CliRunner, tmp_path: Path) -> None:
-        dataset = tmp_path / "multi.jsonl"
+    def test_eval_multiple_samples(self, runner: CliRunner, tmp_dir: Path) -> None:
+        dataset = tmp_dir / "multi.jsonl"
         samples = [
             {
                 "question": f"Question {i}",
