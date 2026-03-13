@@ -62,6 +62,13 @@ from lexisearch.retrieval.reranker import (
     RerankedRetriever,
     RerankerConfig,
 )
+from lexisearch.retrieval.explain import (
+    ChunkExplanation,
+    RetrievalExplanation,
+    RetrievalExplainer,
+    SubQueryContribution,
+    TermOverlap,
+)
 from lexisearch.retrieval.compression import (
     BaseCompressor,
     CompressedChunk,
@@ -112,11 +119,16 @@ __all__ = [
     "VectorRetriever",
     "VectorRetrieverConfig",
     "BaseCompressor",
+    "ChunkExplanation",
     "CompressedChunk",
     "IntentClassification",
     "IntentClassifier",
     "KeywordCompressor",
     "QueryIntent",
+    "RetrievalExplanation",
+    "RetrievalExplainer",
+    "SubQueryContribution",
+    "TermOverlap",
     "QueryRouter",
     "RoutingResult",
     "SentenceCompressor",
