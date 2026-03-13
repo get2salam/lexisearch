@@ -77,6 +77,10 @@ class BaseLoader(ABC):
             ".pdf": DocumentFormat.PDF,
             ".html": DocumentFormat.HTML,
             ".htm": DocumentFormat.HTML,
+            ".json": DocumentFormat.JSON,
+            ".jsonl": DocumentFormat.JSON,
+            ".csv": DocumentFormat.CSV,
+            ".tsv": DocumentFormat.CSV,
         }
         fmt = ext_to_format.get(path.suffix.lower(), DocumentFormat.UNKNOWN)
         return fmt in self.supported_formats()

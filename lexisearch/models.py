@@ -22,6 +22,8 @@ class DocumentFormat(Enum):
     PDF = "pdf"
     HTML = "html"
     MARKDOWN = "markdown"
+    JSON = "json"
+    CSV = "csv"
     UNKNOWN = "unknown"
 
 
