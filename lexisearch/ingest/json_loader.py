@@ -150,7 +150,7 @@ class JSONLoader(BaseLoader):
     def _load_json(self, path: Path) -> list[Any]:
         data: Any = json.loads(path.read_text(encoding="utf-8"))
         if isinstance(data, list):
-            return data  # type: ignore[return-value]
+            return data
         return [data]
 
     def _load_jsonl(self, path: Path) -> list[Any]:
