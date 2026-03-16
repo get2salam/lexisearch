@@ -1,376 +1,387 @@
-"""Tests for content-hash deduplication (lexisearch.ingest.dedup).
-
-Covers:
-- content_hash() stability and normalisation
-- ContentHashRegistry.register() / contains() / reset()
-- DeduplicationFilter.filter() with all three strategies
-- DeduplicationFilter.load() and load_many() with a mock loader
-- DeduplicationFilter.stats()
-- Thread safety (basic)
-- Edge cases: empty list, single doc, all duplicates
-"""
+"""Tests for the document deduplication module."""
 
 from __future__ import annotations
 
-import threading
-from unittest.mock import MagicMock
-
-import pytest
-
-from lexisearch.ingest.dedup import (
-    ContentHashRegistry,
-    DeduplicationFilter,
-    DuplicateDocumentError,
+from lexisearch.models import Chunk, SearchResult
+from lexisearch.retrieval.dedup import (
+    DeduplicationPipeline,
+    DedupResult,
+    DedupStats,
+    DuplicateGroup,
+    ExactDeduplicator,
+    MinHashDeduplicator,
+    SimHashDeduplicator,
+    _hamming_distance,
     _normalise,
-    content_hash,
+    _shingles,
+    _simhash,
+    _token_shingles,
 )
-from lexisearch.models import Document, DocumentMetadata
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 
-def _doc(content: str, doc_id: str = "d1", title: str = "Test Doc") -> Document:
-    return Document(content=content, id=doc_id, metadata=DocumentMetadata(title=title))
+def _make_result(text: str, score: float = 0.9, doc_id: str = "") -> SearchResult:
+    """Create a SearchResult for testing."""
+    return SearchResult(
+        chunk=Chunk(
+            content=text,
+            document_id=doc_id or "test_doc",
+            metadata={"doc_id": doc_id or text[:20]},
+        ),
+        score=score,
+    )
+
+
+def _make_results(*texts: str) -> list[SearchResult]:
+    """Create multiple SearchResults from text strings."""
+    return [_make_result(t, score=1.0 - i * 0.1) for i, t in enumerate(texts)]
 
 
 # ---------------------------------------------------------------------------
-# content_hash
-# ---------------------------------------------------------------------------
-
-
-class TestContentHash:
-    def test_same_content_same_hash(self) -> None:
-        d1 = _doc("Hello world")
-        d2 = _doc("Hello world")
-        assert content_hash(d1) == content_hash(d2)
-
-    def test_different_content_different_hash(self) -> None:
-        d1 = _doc("Hello world")
-        d2 = _doc("Goodbye world")
-        assert content_hash(d1) != content_hash(d2)
-
-    def test_whitespace_normalised(self) -> None:
-        d1 = _doc("Hello   world")
-        d2 = _doc("Hello world")
-        assert content_hash(d1) == content_hash(d2)
-
-    def test_case_normalised(self) -> None:
-        d1 = _doc("HELLO WORLD")
-        d2 = _doc("hello world")
-        assert content_hash(d1) == content_hash(d2)
-
-    def test_leading_trailing_whitespace_normalised(self) -> None:
-        d1 = _doc("  hello world  ")
-        d2 = _doc("hello world")
-        assert content_hash(d1) == content_hash(d2)
-
-    def test_returns_64_char_hex(self) -> None:
-        digest = content_hash(_doc("anything"))
-        assert len(digest) == 64
-        assert all(c in "0123456789abcdef" for c in digest)
-
-    def test_newlines_normalised(self) -> None:
-        d1 = _doc("line one\nline two")
-        d2 = _doc("line one line two")
-        assert content_hash(d1) == content_hash(d2)
-
-
-# ---------------------------------------------------------------------------
-# _normalise helper
+# Test helpers
 # ---------------------------------------------------------------------------
 
 
 class TestNormalise:
-    def test_strips_edges(self) -> None:
-        assert _normalise("  hello  ") == "hello"
+    def test_lowercase(self) -> None:
+        assert _normalise("Hello WORLD") == "hello world"
 
-    def test_collapses_internal_whitespace(self) -> None:
-        assert _normalise("a   b") == "a b"
+    def test_collapse_whitespace(self) -> None:
+        assert _normalise("hello   world\n\nfoo") == "hello world foo"
 
-    def test_lowercases(self) -> None:
-        assert _normalise("ABC") == "abc"
+    def test_strip_punctuation(self) -> None:
+        assert _normalise("hello, world!") == "hello world"
 
-
-# ---------------------------------------------------------------------------
-# ContentHashRegistry
-# ---------------------------------------------------------------------------
+    def test_empty(self) -> None:
+        assert _normalise("") == ""
 
 
-class TestContentHashRegistry:
-    def test_register_new_returns_true(self) -> None:
-        reg = ContentHashRegistry()
-        is_new, _ = reg.register(_doc("unique content"))
-        assert is_new is True
+class TestShingles:
+    def test_basic(self) -> None:
+        shingles = _shingles("abcde", k=3)
+        assert shingles == {"abc", "bcd", "cde"}
 
-    def test_register_duplicate_returns_false(self) -> None:
-        reg = ContentHashRegistry()
-        reg.register(_doc("same content"))
-        is_new, _ = reg.register(_doc("same content"))
-        assert is_new is False
+    def test_short_text(self) -> None:
+        assert _shingles("ab", k=3) == {"ab"}
 
-    def test_seen_count_increments(self) -> None:
-        reg = ContentHashRegistry()
-        reg.register(_doc("a"))
-        reg.register(_doc("b"))
-        assert reg.seen_count() == 2
+    def test_empty(self) -> None:
+        assert _shingles("", k=3) == set()
 
-    def test_seen_count_no_double_count(self) -> None:
-        reg = ContentHashRegistry()
-        reg.register(_doc("same"))
-        reg.register(_doc("same"))
-        assert reg.seen_count() == 1
 
-    def test_reset_clears_registry(self) -> None:
-        reg = ContentHashRegistry()
-        reg.register(_doc("something"))
-        reg.reset()
-        assert reg.seen_count() == 0
-        is_new, _ = reg.register(_doc("something"))
-        assert is_new is True
+class TestTokenShingles:
+    def test_basic(self) -> None:
+        shingles = _token_shingles("the quick brown fox", k=2)
+        assert "the quick" in shingles
+        assert "quick brown" in shingles
+        assert "brown fox" in shingles
 
-    def test_contains_true_after_register(self) -> None:
-        reg = ContentHashRegistry()
-        doc = _doc("check me")
-        reg.register(doc)
-        assert reg.contains(doc) is True
+    def test_single_word(self) -> None:
+        assert _token_shingles("hello", k=2) == {"hello"}
 
-    def test_contains_false_before_register(self) -> None:
-        reg = ContentHashRegistry()
-        assert reg.contains(_doc("not yet")) is False
 
-    def test_add_digest_manually(self) -> None:
-        reg = ContentHashRegistry()
-        doc = _doc("manual digest")
-        digest = content_hash(doc)
-        reg.add_digest(digest)
-        is_new, _ = reg.register(doc)
-        assert is_new is False
+class TestHammingDistance:
+    def test_identical(self) -> None:
+        assert _hamming_distance(0xFF, 0xFF) == 0
 
-    def test_shared_registry_across_filters(self) -> None:
-        shared = ContentHashRegistry()
-        f1 = DeduplicationFilter(registry=shared)
-        f2 = DeduplicationFilter(registry=shared)
+    def test_one_bit(self) -> None:
+        assert _hamming_distance(0b1111, 0b1110) == 1
 
-        f1.filter([_doc("shared content")])
-        # f2 uses the same registry so sees it as duplicate
-        result = f2.filter([_doc("shared content")])
-        assert result == []
+    def test_all_different(self) -> None:
+        assert _hamming_distance(0b0000, 0b1111) == 4
+
+
+class TestSimHash:
+    def test_similar_texts_close(self) -> None:
+        h1 = _simhash("the quick brown fox jumps over the lazy dog")
+        h2 = _simhash("the quick brown fox jumped over the lazy dog")
+        dist = _hamming_distance(h1, h2)
+        assert dist <= 20  # Should be relatively close
+
+    def test_different_texts_far(self) -> None:
+        h1 = _simhash("the quick brown fox jumps over the lazy dog")
+        h2 = _simhash("quantum mechanics is a fundamental theory in physics")
+        dist = _hamming_distance(h1, h2)
+        assert dist > 10  # Should be far apart
 
 
 # ---------------------------------------------------------------------------
-# DeduplicationFilter.filter()
+# Test ExactDeduplicator
 # ---------------------------------------------------------------------------
 
 
-class TestDeduplicationFilterFilter:
-    def test_unique_documents_pass_through(self) -> None:
-        f = DeduplicationFilter()
-        docs = [_doc("doc a", "d1"), _doc("doc b", "d2")]
-        result = f.filter(docs)
-        assert len(result) == 2
+class TestExactDeduplicator:
+    def test_no_duplicates(self) -> None:
+        results = _make_results("hello world", "foo bar", "baz qux")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.total == 3
+        assert out.stats.unique == 3
+        assert out.stats.duplicates == 0
+        assert len(out.deduplicated) == 3
+        assert len(out.duplicate_groups) == 0
 
-    def test_duplicate_removed(self) -> None:
-        f = DeduplicationFilter()
-        docs = [_doc("same content"), _doc("same content")]
-        result = f.filter(docs)
-        assert len(result) == 1
+    def test_exact_duplicates(self) -> None:
+        results = _make_results("hello world", "hello world", "foo bar")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.total == 3
+        assert out.stats.unique == 2
+        assert out.stats.duplicates == 1
+        assert len(out.deduplicated) == 2
+        assert len(out.duplicate_groups) == 1
+        assert out.duplicate_groups[0].canonical_index == 0
+        assert out.duplicate_groups[0].duplicate_indices == [1]
 
-    def test_first_occurrence_kept(self) -> None:
-        f = DeduplicationFilter()
-        d1 = _doc("identical", "id-1")
-        d2 = _doc("identical", "id-2")
-        result = f.filter([d1, d2])
-        assert result[0].id == "id-1"
+    def test_whitespace_normalisation(self) -> None:
+        results = _make_results("hello world", "hello   world", "  hello world  ")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 1
+        assert out.stats.duplicates == 2
 
-    def test_empty_input_returns_empty(self) -> None:
-        f = DeduplicationFilter()
-        assert f.filter([]) == []
+    def test_case_normalisation(self) -> None:
+        results = _make_results("Hello World", "HELLO WORLD", "hello world")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 1
 
-    def test_all_duplicates_returns_empty(self) -> None:
-        f = DeduplicationFilter()
-        docs = [_doc("same"), _doc("same"), _doc("same")]
-        result = f.filter(docs)
-        assert len(result) == 1  # first occurrence kept
+    def test_punctuation_normalisation(self) -> None:
+        results = _make_results("hello, world!", "hello world", "hello; world.")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 1
 
-    def test_multiple_calls_accumulate_registry(self) -> None:
-        f = DeduplicationFilter()
-        f.filter([_doc("seen before")])
-        result = f.filter([_doc("seen before")])
-        assert result == []
+    def test_empty_input(self) -> None:
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate([])
+        assert out.stats.total == 0
+        assert out.stats.unique == 0
+        assert out.stats.duplicates == 0
+        assert len(out.deduplicated) == 0
 
-    def test_strategy_warn_logs(self, caplog: pytest.LogCaptureFixture) -> None:
-        import logging
+    def test_single_result(self) -> None:
+        results = _make_results("single item")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 1
 
-        f = DeduplicationFilter(strategy="warn")
-        with caplog.at_level(logging.WARNING, logger="lexisearch.ingest.dedup"):
-            f.filter([_doc("dup"), _doc("dup")])
-        assert any("Duplicate" in r.message for r in caplog.records)
+    def test_preserves_order(self) -> None:
+        results = _make_results("aaa", "bbb", "aaa", "ccc")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert [r.chunk.content for r in out.deduplicated] == ["aaa", "bbb", "ccc"]
 
-    def test_strategy_raise_on_duplicate(self) -> None:
-        f = DeduplicationFilter(strategy="raise")
-        with pytest.raises(DuplicateDocumentError) as exc_info:
-            f.filter([_doc("same"), _doc("same")])
-        assert exc_info.value.digest != ""
-        assert exc_info.value.document is not None
+    def test_multiple_groups(self) -> None:
+        results = _make_results("aaa", "bbb", "aaa", "bbb", "ccc")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 3
+        assert out.stats.duplicates == 2
+        assert len(out.duplicate_groups) == 2
 
-    def test_invalid_strategy_raises(self) -> None:
-        with pytest.raises(ValueError, match="Invalid dedup strategy"):
-            DeduplicationFilter(strategy="invalid")
-
-
-# ---------------------------------------------------------------------------
-# DeduplicationFilter.stats()
-# ---------------------------------------------------------------------------
-
-
-class TestDeduplicationFilterStats:
-    def test_stats_initial(self) -> None:
-        f = DeduplicationFilter()
-        s = f.stats()
-        assert s == {
-            "total_seen": 0,
-            "duplicates_skipped": 0,
-            "unique_loaded": 0,
-            "registry_size": 0,
-        }
-
-    def test_stats_after_filter(self) -> None:
-        f = DeduplicationFilter()
-        f.filter([_doc("a"), _doc("b"), _doc("a")])
-        s = f.stats()
-        assert s["total_seen"] == 3
-        assert s["duplicates_skipped"] == 1
-        assert s["unique_loaded"] == 2
-        assert s["registry_size"] == 2
-
-    def test_reset_clears_stats(self) -> None:
-        f = DeduplicationFilter()
-        f.filter([_doc("x")])
-        f.reset()
-        s = f.stats()
-        assert s["total_seen"] == 0
-        assert s["registry_size"] == 0
+    def test_timing(self) -> None:
+        results = _make_results("hello world")
+        dedup = ExactDeduplicator()
+        out = dedup.deduplicate(results)
+        assert out.stats.dedup_time_ms >= 0
 
 
 # ---------------------------------------------------------------------------
-# DeduplicationFilter.load() with a mock loader
+# Test SimHashDeduplicator
 # ---------------------------------------------------------------------------
 
 
-class TestDeduplicationFilterLoad:
-    def _make_loader(self, doc: Document) -> MagicMock:
-        loader = MagicMock()
-        loader.load.return_value = doc
-        return loader
+class TestSimHashDeduplicator:
+    def test_identical_texts(self) -> None:
+        results = _make_results("the cat sat on the mat", "the cat sat on the mat")
+        dedup = SimHashDeduplicator(hamming_threshold=3)
+        out = dedup.deduplicate(results)
+        assert out.stats.duplicates == 1
 
-    def _make_list_loader(self, docs: list[Document]) -> MagicMock:
-        loader = MagicMock()
-        loader.load.return_value = docs
-        return loader
+    def test_very_similar_texts(self) -> None:
+        results = _make_results(
+            "the court held that the defendant was liable for damages",
+            "the court held that the defendant was liable for damage",
+        )
+        dedup = SimHashDeduplicator(hamming_threshold=5)
+        out = dedup.deduplicate(results)
+        assert out.stats.duplicates >= 1
 
-    def test_load_new_document(self) -> None:
-        doc = _doc("fresh content")
-        f = DeduplicationFilter(self._make_loader(doc))
-        result = f.load("file.txt")
-        assert result == doc
+    def test_different_texts_kept(self) -> None:
+        results = _make_results(
+            "the court found the defendant guilty of fraud",
+            "quantum mechanics describes behaviour of particles at atomic scale",
+        )
+        dedup = SimHashDeduplicator(hamming_threshold=3)
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 2
 
-    def test_load_returns_original_on_duplicate(self) -> None:
-        doc = _doc("seen before")
-        loader = self._make_loader(doc)
-        f = DeduplicationFilter(loader)
-        f.load("file.txt")  # first time
-        result = f.load("file.txt")  # second time — duplicate
-        # The original doc is returned (caller decides what to do)
-        assert result == doc
+    def test_empty_input(self) -> None:
+        dedup = SimHashDeduplicator()
+        out = dedup.deduplicate([])
+        assert out.stats.total == 0
 
-    def test_load_list(self) -> None:
-        docs = [_doc("x", "d1"), _doc("y", "d2"), _doc("x", "d3")]
-        f = DeduplicationFilter(self._make_list_loader(docs))
-        result = f.load("dir/")
-        assert isinstance(result, list)
-        assert len(result) == 2
+    def test_strict_threshold(self) -> None:
+        results = _make_results(
+            "the quick brown fox jumps over the lazy dog",
+            "the quick brown fox jumped over the lazy dog",
+        )
+        dedup = SimHashDeduplicator(hamming_threshold=0)
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 2  # Strict = no fuzzy match
 
-    def test_load_without_loader_raises(self) -> None:
-        f = DeduplicationFilter()
-        with pytest.raises(RuntimeError, match="No loader"):
-            f.load("file.txt")
-
-    def test_load_many_deduplicates_across_files(self) -> None:
-        doc_a = _doc("content A", "d1")
-        doc_b = _doc("content B", "d2")
-        doc_a2 = _doc("content A", "d3")  # duplicate of doc_a
-
-        loader = MagicMock()
-        loader.load.side_effect = [doc_a, doc_b, doc_a2]
-
-        f = DeduplicationFilter(loader)
-        results = f.load_many(["f1.txt", "f2.txt", "f3.txt"])
-        assert len(results) == 2
-
-    def test_load_many_without_loader_raises(self) -> None:
-        f = DeduplicationFilter()
-        with pytest.raises(RuntimeError):
-            f.load_many(["a.txt"])
+    def test_groups_populated(self) -> None:
+        results = _make_results("abc def ghi", "abc def ghi")
+        dedup = SimHashDeduplicator(hamming_threshold=3)
+        out = dedup.deduplicate(results)
+        assert len(out.duplicate_groups) == 1
+        assert out.duplicate_groups[0].canonical_index == 0
 
 
 # ---------------------------------------------------------------------------
-# is_duplicate
+# Test MinHashDeduplicator
 # ---------------------------------------------------------------------------
 
 
-class TestIsDuplicate:
-    def test_false_before_seeing(self) -> None:
-        f = DeduplicationFilter()
-        assert f.is_duplicate(_doc("new content")) is False
+class TestMinHashDeduplicator:
+    def test_identical_texts(self) -> None:
+        results = _make_results(
+            "the supreme court upheld the decision of the high court",
+            "the supreme court upheld the decision of the high court",
+        )
+        dedup = MinHashDeduplicator(threshold=0.8)
+        out = dedup.deduplicate(results)
+        assert out.stats.duplicates == 1
 
-    def test_true_after_filtering(self) -> None:
-        f = DeduplicationFilter()
-        doc = _doc("will be seen")
-        f.filter([doc])
-        assert f.is_duplicate(doc) is True
+    def test_similar_texts(self) -> None:
+        results = _make_results(
+            "the supreme court upheld the decision of the high court in this matter",
+            "the supreme court upheld the decision of the high court in this case",
+        )
+        dedup = MinHashDeduplicator(threshold=0.5, num_perm=256)
+        out = dedup.deduplicate(results)
+        assert out.stats.duplicates >= 1
+
+    def test_different_texts_kept(self) -> None:
+        results = _make_results(
+            "the supreme court upheld the decision regarding property rights",
+            "quantum computing uses qubits to perform parallel calculations",
+        )
+        dedup = MinHashDeduplicator(threshold=0.5)
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 2
+
+    def test_empty_input(self) -> None:
+        dedup = MinHashDeduplicator()
+        out = dedup.deduplicate([])
+        assert out.stats.total == 0
+
+    def test_high_threshold_strict(self) -> None:
+        results = _make_results(
+            "the court held that the appellant was liable",
+            "the court held that the respondent was liable",
+        )
+        dedup = MinHashDeduplicator(threshold=0.99)
+        out = dedup.deduplicate(results)
+        assert out.stats.unique == 2  # Not similar enough at 99%
 
 
 # ---------------------------------------------------------------------------
-# DuplicateDocumentError
+# Test DeduplicationPipeline
 # ---------------------------------------------------------------------------
 
 
-class TestDuplicateDocumentError:
-    def test_has_digest_and_document(self) -> None:
-        doc = _doc("test")
-        err = DuplicateDocumentError("msg", digest="abc123", document=doc)
-        assert err.digest == "abc123"
-        assert err.document is doc
+class TestDeduplicationPipeline:
+    def test_empty_pipeline(self) -> None:
+        results = _make_results("aaa", "bbb")
+        pipeline = DeduplicationPipeline()
+        out = pipeline.deduplicate(results)
+        assert out.stats.unique == 2  # No strategies = no dedup
 
-    def test_is_exception(self) -> None:
-        assert isinstance(DuplicateDocumentError("err"), Exception)
+    def test_single_strategy(self) -> None:
+        results = _make_results("aaa", "aaa", "bbb")
+        pipeline = DeduplicationPipeline([ExactDeduplicator()])
+        out = pipeline.deduplicate(results)
+        assert out.stats.unique == 2
+
+    def test_chained_strategies(self) -> None:
+        results = _make_results(
+            "the court held that the defendant was guilty",
+            "the court held that the defendant was guilty",  # exact dup
+            "the court held that the defendant was guilty of the crime",  # near dup
+            "quantum mechanics is a theory of physics",  # different
+        )
+        pipeline = DeduplicationPipeline(
+            [
+                ExactDeduplicator(),
+                SimHashDeduplicator(hamming_threshold=5),
+            ]
+        )
+        out = pipeline.deduplicate(results)
+        assert out.stats.total == 4
+        assert out.stats.unique <= 3  # At least exact dup removed
+
+    def test_add_method(self) -> None:
+        pipeline = DeduplicationPipeline()
+        pipeline.add(ExactDeduplicator()).add(SimHashDeduplicator())
+        assert len(pipeline.strategies) == 2
+
+    def test_stats_accuracy(self) -> None:
+        results = _make_results("aaa", "aaa", "bbb", "bbb", "ccc")
+        pipeline = DeduplicationPipeline([ExactDeduplicator()])
+        out = pipeline.deduplicate(results)
+        assert out.stats.total == 5
+        assert out.stats.unique == 3
+        assert out.stats.duplicates == 2
+        assert out.stats.total == out.stats.unique + out.stats.duplicates
+
+    def test_timing(self) -> None:
+        results = _make_results("hello", "world")
+        pipeline = DeduplicationPipeline([ExactDeduplicator()])
+        out = pipeline.deduplicate(results)
+        assert out.stats.dedup_time_ms >= 0
+
+    def test_original_preserved(self) -> None:
+        results = _make_results("aaa", "aaa", "bbb")
+        pipeline = DeduplicationPipeline([ExactDeduplicator()])
+        out = pipeline.deduplicate(results)
+        assert len(out.original) == 3
+        assert len(out.deduplicated) == 2
 
 
 # ---------------------------------------------------------------------------
-# Thread safety (basic)
+# Test DedupResult / DedupStats / DuplicateGroup dataclasses
 # ---------------------------------------------------------------------------
 
 
-class TestThreadSafety:
-    def test_concurrent_register_no_double_registration(self) -> None:
-        registry = ContentHashRegistry()
-        doc = _doc("concurrent content")
-        results: list[bool] = []
-        lock = threading.Lock()
+class TestDataClasses:
+    def test_dedup_stats(self) -> None:
+        stats = DedupStats(total=10, unique=8, duplicates=2, dedup_time_ms=1.5)
+        assert stats.total == 10
+        assert stats.unique == 8
+        assert stats.duplicates == 2
+        assert stats.dedup_time_ms == 1.5
 
-        def worker() -> None:
-            is_new, _ = registry.register(doc)
-            with lock:
-                results.append(is_new)
+    def test_duplicate_group(self) -> None:
+        group = DuplicateGroup(canonical_index=0, duplicate_indices=[1, 2], similarity=0.95)
+        assert group.canonical_index == 0
+        assert group.duplicate_indices == [1, 2]
+        assert group.similarity == 0.95
 
-        threads = [threading.Thread(target=worker) for _ in range(20)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+    def test_duplicate_group_defaults(self) -> None:
+        group = DuplicateGroup(canonical_index=5)
+        assert group.duplicate_indices == []
+        assert group.similarity == 1.0
 
-        # Exactly one thread should have seen it as new
-        assert results.count(True) == 1
-        assert results.count(False) == 19
+    def test_dedup_result(self) -> None:
+        result = DedupResult(
+            original=[],
+            deduplicated=[],
+            duplicate_groups=[],
+            stats=DedupStats(0, 0, 0, 0.0),
+        )
+        assert result.original == []
+        assert result.deduplicated == []
