@@ -75,6 +75,17 @@ from lexisearch.retrieval.explain import (
 )
 from lexisearch.retrieval.hybrid import FusionMethod, HybridConfig, HybridRetriever
 from lexisearch.retrieval.mmr import greedy_diversify, mmr_select
+from lexisearch.retrieval.normalize import (
+    ENGLISH_STOPWORDS,
+    NormalizerConfig,
+    NormalizationResult,
+    PunctuationPolicy,
+    QueryNormalizer,
+    detect_script,
+    make_default_normalizer,
+    make_keyword_normalizer,
+    make_strict_normalizer,
+)
 from lexisearch.retrieval.query import (
     BaseQueryExpander,
     ExpandedQuery,
@@ -163,4 +174,14 @@ __all__ = [
     "greedy_diversify",
     "mmr_select",
     "reciprocal_rank_fusion",
+    # normalize
+    "ENGLISH_STOPWORDS",
+    "NormalizerConfig",
+    "NormalizationResult",
+    "PunctuationPolicy",
+    "QueryNormalizer",
+    "detect_script",
+    "make_default_normalizer",
+    "make_keyword_normalizer",
+    "make_strict_normalizer",
 ]
