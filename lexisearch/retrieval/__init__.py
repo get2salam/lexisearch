@@ -77,8 +77,8 @@ from lexisearch.retrieval.hybrid import FusionMethod, HybridConfig, HybridRetrie
 from lexisearch.retrieval.mmr import greedy_diversify, mmr_select
 from lexisearch.retrieval.normalize import (
     ENGLISH_STOPWORDS,
-    NormalizerConfig,
     NormalizationResult,
+    NormalizerConfig,
     PunctuationPolicy,
     QueryNormalizer,
     detect_script,
@@ -112,6 +112,7 @@ from lexisearch.retrieval.router import (
 from lexisearch.retrieval.vector_retriever import VectorRetriever, VectorRetrieverConfig
 
 __all__ = [
+    "ENGLISH_STOPWORDS",
     "AdaptiveConfig",
     "AdaptiveRetriever",
     "AdvancedRetrievalConfig",
@@ -149,9 +150,13 @@ __all__ = [
     "MinHashDeduplicator",
     "MultiQueryExpander",
     "MultiQueryRetriever",
+    "NormalizationResult",
+    "NormalizerConfig",
     "PseudoRelevanceFeedback",
+    "PunctuationPolicy",
     "QueryDecomposer",
     "QueryIntent",
+    "QueryNormalizer",
     "QueryRouter",
     "RerankedRetriever",
     "RerankerConfig",
@@ -171,17 +176,11 @@ __all__ = [
     "VectorRetriever",
     "VectorRetrieverConfig",
     "adaptive_retriever",
-    "greedy_diversify",
-    "mmr_select",
-    "reciprocal_rank_fusion",
-    # normalize
-    "ENGLISH_STOPWORDS",
-    "NormalizerConfig",
-    "NormalizationResult",
-    "PunctuationPolicy",
-    "QueryNormalizer",
     "detect_script",
+    "greedy_diversify",
     "make_default_normalizer",
     "make_keyword_normalizer",
     "make_strict_normalizer",
+    "mmr_select",
+    "reciprocal_rank_fusion",
 ]
