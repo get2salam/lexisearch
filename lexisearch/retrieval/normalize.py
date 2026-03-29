@@ -309,7 +309,7 @@ _CONTRACTION_RE = re.compile(
 )
 
 
-def _replace_contraction(match: re.Match[str]) -> str:  # type: ignore[type-arg]
+def _replace_contraction(match: re.Match[str]) -> str:
     token = match.group(0).lower()
     return _CONTRACTIONS.get(token, token)
 
@@ -389,7 +389,7 @@ def _extract_quoted_phrases(text: str) -> tuple[str, list[str]]:
     """
     phrases: list[str] = []
 
-    def _sub(m: re.Match[str]) -> str:  # type: ignore[type-arg]
+    def _sub(m: re.Match[str]) -> str:
         idx = len(phrases)
         phrases.append(m.group(1))
         return f"__PHRASE_{idx}__"
