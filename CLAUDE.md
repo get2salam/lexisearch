@@ -43,7 +43,7 @@ tests/              # Pytest test suite (mirrors src structure)
 2. `ruff format src/ tests/` — must have no changes
 3. `pytest` — all tests must pass
 4. No `print()` in production code (use logging)
-5. No Pakistan/PLS/Qanoon references — this repo is PUBLIC
+5. No client-specific, private-source, or launch-sensitive references — this repo is PUBLIC
 
 ## Common Gotchas
 - `embed_text()` bypasses cache → always use `embed_text_cached()`
