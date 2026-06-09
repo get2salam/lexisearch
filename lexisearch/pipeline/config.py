@@ -13,12 +13,13 @@ Three built-in presets are available via :func:`default_config`:
 
 from __future__ import annotations
 
+import importlib
 import json
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -434,7 +435,7 @@ def load_config(path: str | Path) -> PipelineConfig:
 
     if suffix in (".yaml", ".yml"):
         try:
-            import yaml  # type: ignore[import-untyped]
+            yaml = cast("Any", importlib.import_module("yaml"))
 
             raw: dict[str, Any] = yaml.safe_load(text) or {}
         except ImportError as exc:
