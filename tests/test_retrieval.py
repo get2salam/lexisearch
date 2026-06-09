@@ -799,6 +799,37 @@ class TestQueryExpansion:
         result = expander.expand("ML techniques")
         assert "machine learning" in result.expanded
 
+    def test_synonym_expander_ignores_substring_collisions(self):
+        # Regression: a short synonym like "ai" must not be skipped just
+        # because an unrelated query word ("rain") contains those letters.
+        expander = SynonymExpander(synonyms={"ML": ["ai"]})
+        result = expander.expand("rain ML")
+        assert "ai" in result.added_terms
+        assert "ai" in result.expanded.split()
+
+    def test_synonym_expander_no_duplicate_for_repeated_token(self):
+        # Regression: when the same trigger token appears twice the synonym
+        # should only be appended once, not once per occurrence.
+        expander = SynonymExpander(synonyms={"ML": ["machine learning"]})
+        result = expander.expand("ML and ML")
+        assert result.added_terms == ["machine learning"]
+        assert result.expanded.count("machine learning") == 1
+
+    def test_synonym_expander_skips_when_synonym_already_a_word(self):
+        # If the synonym is already a whole word/phrase in the query we
+        # should not duplicate it in the expansion.
+        expander = SynonymExpander(synonyms={"ML": ["machine learning"]})
+        result = expander.expand("ML and machine learning")
+        assert result.added_terms == []
+        assert result.expanded.count("machine learning") == 1
+
+    def test_synonym_expander_present_check_is_case_insensitive(self):
+        # "AI" already appears as a whole token (in upper case); the lowercase
+        # synonym should still be considered present and skipped.
+        expander = SynonymExpander(synonyms={"ML": ["ai"]})
+        result = expander.expand("rain ML AI")
+        assert result.added_terms == []
+
     def test_query_decomposer_basic(self):
         decomposer = QueryDecomposer()
         result = decomposer.expand("What are transformers and how do attention mechanisms work?")

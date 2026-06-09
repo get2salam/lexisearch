@@ -18,6 +18,22 @@ from dataclasses import dataclass, field
 from typing import Any
 
 
+def _contains_phrase(haystack: str, needle: str) -> bool:
+    """Return ``True`` if *needle* appears in *haystack* as a whole word/phrase.
+
+    Uses word boundaries when *needle* starts/ends with a word character so that
+    short synonyms (e.g. ``"ai"``) are not incorrectly matched inside unrelated
+    tokens (e.g. ``"rain"``).  Falls back to a literal substring check for
+    needles that begin or end with non-word characters (e.g. ``"c++"``).
+    """
+    if not needle:
+        return False
+    left = r"\b" if needle[0].isalnum() or needle[0] == "_" else ""
+    right = r"\b" if needle[-1].isalnum() or needle[-1] == "_" else ""
+    pattern = f"{left}{re.escape(needle)}{right}"
+    return re.search(pattern, haystack) is not None
+
+
 @dataclass
 class ExpandedQuery:
     """Result of a query expansion operation.
@@ -100,6 +116,8 @@ class SynonymExpander(BaseQueryExpander):
         """
         tokens = query.split()
         added: list[str] = []
+        added_seen: set[str] = set()
+        query_lower = query.lower()
 
         for token in tokens:
             key = token if self.case_sensitive else token.lower()
@@ -107,8 +125,18 @@ class SynonymExpander(BaseQueryExpander):
             clean_key = re.sub(r"[^\w]", "", key)
             syns = self._index.get(clean_key, [])
             for syn in syns:
-                if syn.lower() not in query.lower():
-                    added.append(syn)
+                syn_lower = syn.lower()
+                # Skip if we've already queued this synonym for a previous
+                # occurrence of the same token (e.g. "ML and ML").
+                if syn_lower in added_seen:
+                    continue
+                # Use a whole-word/phrase boundary check rather than a raw
+                # substring test: a short synonym like "ai" must not be
+                # suppressed by unrelated words such as "rain" or "claim".
+                if _contains_phrase(query_lower, syn_lower):
+                    continue
+                added.append(syn)
+                added_seen.add(syn_lower)
 
         expanded = query
         if added:
