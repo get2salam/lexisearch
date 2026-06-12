@@ -129,6 +129,9 @@ class TestIndexCommand:
             result = runner.invoke(cli, ["index", str(tmp_dir), "--glob", "*.pdf"])
 
         assert "No documents found" in result.output
+        assert "Looked in:" in result.output
+        assert "Pattern: '*.pdf'" in result.output
+        assert "Try: lexisearch index ./docs" in result.output
 
     def test_index_nonexistent_path_fails(self, runner: CliRunner) -> None:
         result = runner.invoke(cli, ["index", "/nonexistent/path/file.txt"])
@@ -148,6 +151,9 @@ class TestSearchCommand:
 
         assert result.exit_code == 0
         assert "No results" in result.output
+        assert "Next steps:" in result.output
+        assert "Index documents first" in result.output
+        assert "lexisearch info" in result.output
 
     def test_search_with_results(self, runner: CliRunner) -> None:
         hit = MagicMock()

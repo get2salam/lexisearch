@@ -95,6 +95,34 @@ def _wrap(text: str, width: int = 72, indent: str = "  ") -> str:
     return textwrap.fill(text, width=width, initial_indent=indent, subsequent_indent=indent)
 
 
+def _path_list_label(paths: tuple[str, ...], *, limit: int = 3) -> str:
+    """Return a compact, readable path summary for CLI guidance."""
+    shown = [str(Path(path)) for path in paths[:limit]]
+    if len(paths) > limit:
+        shown.append(f"… +{len(paths) - limit} more")
+    return ", ".join(shown)
+
+
+def _echo_empty_index_hint(
+    click: Any, paths: tuple[str, ...], pattern: str, recursive: bool
+) -> None:
+    """Print actionable guidance when no files match an index request."""
+    click.echo("No documents found to index.")
+    click.echo(f"  Looked in: {_path_list_label(paths)}")
+    click.echo(f"  Pattern: {pattern!r} ({'recursive' if recursive else 'non-recursive'})")
+    click.echo("  Try: lexisearch index ./docs --glob '**/*.txt'")
+
+
+def _echo_empty_search_hint(click: Any, query: str, top_k: int) -> None:
+    """Print a screen-reader-friendly empty state with next actions."""
+    click.echo("  No results found.")
+    click.echo(f"  Query: {query!r} | requested top_k={top_k}")
+    click.echo("  Next steps:")
+    click.echo("    1. Index documents first: lexisearch index ./docs --glob '**/*.txt'")
+    click.echo("    2. Use broader terms or increase --top-k for exploratory searches.")
+    click.echo("    3. Run lexisearch info to confirm available local backends.")
+
+
 # ---------------------------------------------------------------------------
 # CLI definition
 # ---------------------------------------------------------------------------
@@ -162,7 +190,7 @@ def _build_cli() -> Any:
                     click.echo(f"  ⚠  Skipping {f}: {e}", err=True)
 
         if not docs:
-            click.echo("No documents found to index.")
+            _echo_empty_index_hint(click, paths, pattern, recursive)
             return
 
         click.echo(f"Indexing {len(docs)} document(s)…")
@@ -209,7 +237,7 @@ def _build_cli() -> Any:
         click.echo(f"  Query: {query}")
         click.echo(_hr())
         if not results:
-            click.echo("  No results found.")
+            _echo_empty_search_hint(click, query, top_k)
         for i, r in enumerate(results, 1):
             score = float(getattr(r, "score", 0.0))
             snippet = str(getattr(r, "content", ""))[:200]
