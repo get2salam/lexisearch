@@ -31,6 +31,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         device: Torch device string (``"cpu"``, ``"cuda"``, etc.).
         batch_size: Batch size for :meth:`embed_batch`.
         use_cache: Enable in-memory caching.
+        local_files_only: Only load models already present on disk/in cache.
 
     Raises:
         ImportError: If ``sentence-transformers`` is not installed.
@@ -48,6 +49,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         device: str | None = None,
         batch_size: int = 64,
         use_cache: bool = True,
+        local_files_only: bool = False,
     ) -> None:
         """Initialize the Sentence Transformer embedder.
 
@@ -56,6 +58,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
             device: Torch device. ``None`` = auto-detect.
             batch_size: Batch encoding size.
             use_cache: Enable embedding cache.
+            local_files_only: For offline CI/deployments, fail instead of downloading.
 
         Raises:
             ImportError: If ``sentence-transformers`` is not installed.
@@ -72,6 +75,8 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         kwargs: dict[str, Any] = {}
         if device is not None:
             kwargs["device"] = device
+        if local_files_only:
+            kwargs["local_files_only"] = True
         self._model: Any = SentenceTransformer(model_name_or_path, **kwargs)
         dims = self._model.get_sentence_embedding_dimension()
         self._dims: int = dims if dims is not None else 0

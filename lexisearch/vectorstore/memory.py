@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 from dataclasses import dataclass, field
+from heapq import nlargest
 from pathlib import Path
 from typing import Any
 
@@ -259,6 +260,9 @@ class InMemoryVectorStore(BaseVectorStore):
             Ordered list of :class:`SearchResult`.
         """
         self._check_initialized()
+        if top_k <= 0:
+            return []
+
         self._validate_dimensions(query_vector)
 
         scored: list[tuple[float, _StoredItem]] = []
@@ -268,11 +272,10 @@ class InMemoryVectorStore(BaseVectorStore):
             score = compute_score(query_vector, stored.vector, self.config.metric)
             scored.append((score, stored))
 
-        # Sort by score descending
-        scored.sort(key=lambda x: x[0], reverse=True)
+        top_scored = nlargest(top_k, scored, key=lambda x: x[0])
 
         results: list[SearchResult] = []
-        for rank, (score, stored) in enumerate(scored[:top_k], start=1):
+        for rank, (score, stored) in enumerate(top_scored, start=1):
             ec = self._to_embedded_chunk(stored)
             results.append(SearchResult(chunk=ec.chunk, score=score, rank=rank))
         return results
@@ -295,6 +298,9 @@ class InMemoryVectorStore(BaseVectorStore):
         Returns:
             Ordered search results.
         """
+        if top_k <= 0:
+            return []
+
         query_vector = embedder.embed_text(query)
         return self.search(query_vector, top_k=top_k, filters=filters)
 

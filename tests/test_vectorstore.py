@@ -479,6 +479,19 @@ class TestInMemoryStoreSearch:
         results = memory_store.search(query, top_k=2)
         assert len(results) == 2
 
+    def test_search_zero_top_k_skips_scoring(self, memory_store: InMemoryVectorStore) -> None:
+        items = _make_sample_items()
+        memory_store.add(items)
+        assert memory_store.search([1.0], top_k=0) == []
+
+    def test_search_negative_top_k_returns_no_results(
+        self, memory_store: InMemoryVectorStore
+    ) -> None:
+        items = _make_sample_items()
+        memory_store.add(items)
+        query = MockEmbedder(dimensions=8).embed_text("test")
+        assert memory_store.search(query, top_k=-1) == []
+
     def test_search_wrong_dimensions_raises(self, memory_store: InMemoryVectorStore) -> None:
         items = _make_sample_items()
         memory_store.add(items)
@@ -508,6 +521,20 @@ class TestInMemoryStoreSearch:
         embedder = MockEmbedder(dimensions=8)
         results = memory_store.search_by_text("neural network", embedder, top_k=3)
         assert len(results) == 3
+
+    def test_search_by_text_zero_top_k_skips_embedding(
+        self, memory_store: InMemoryVectorStore
+    ) -> None:
+        class ExplodingEmbedder:
+            def embed_text(self, query: str) -> list[float]:
+                raise AssertionError(f"query should not be embedded: {query}")
+
+        items = _make_sample_items()
+        memory_store.add(items)
+
+        results = memory_store.search_by_text("unused", ExplodingEmbedder(), top_k=0)
+
+        assert results == []
 
 
 class TestInMemoryStoreSearchMetrics:

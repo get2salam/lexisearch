@@ -17,8 +17,9 @@ import json
 import logging
 from dataclasses import asdict, dataclass, field
 from enum import Enum
+from importlib import import_module
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 logger = logging.getLogger(__name__)
 
@@ -434,9 +435,9 @@ def load_config(path: str | Path) -> PipelineConfig:
 
     if suffix in (".yaml", ".yml"):
         try:
-            import yaml  # type: ignore[import-untyped]
-
-            raw: dict[str, Any] = yaml.safe_load(text) or {}
+            yaml = import_module("yaml")
+            safe_load = cast("Any", yaml).safe_load
+            raw: dict[str, Any] = safe_load(text) or {}
         except ImportError as exc:
             raise ValueError(
                 "PyYAML is required to load YAML configs. Install it with: pip install pyyaml"
