@@ -181,6 +181,20 @@ with InMemoryVectorStore(config=config) as store:
     print(f"Found {len(results)} results from {len(docs)} documents")
 ```
 
+### Runnable Offline Hybrid Search Demo
+
+Try the deterministic example when you want to verify LexiSearch without API keys,
+model downloads, or a vector database service:
+
+```bash
+python examples/offline_hybrid_search.py
+```
+
+It builds a tiny corpus, chunks it, embeds it with `MockEmbedder`, indexes both BM25
+and `InMemoryVectorStore`, then fuses the results with weighted linear scoring. The
+expected top hit for `latency backpressure runbook` is the reliability runbook, so
+the example doubles as a quick smoke test for local development.
+
 ## 📖 Documentation
 
 - [Getting Started](docs/getting-started.md)
