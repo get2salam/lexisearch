@@ -22,3 +22,23 @@ def test_offline_hybrid_search_example_runs() -> None:
     assert "Query: latency backpressure runbook" in result.stdout
     assert "1. Reliability runbook (runbook.md)" in result.stdout
     assert "score=" in result.stdout
+
+
+def test_offline_retrieval_eval_example_runs() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    example = repo_root / "examples" / "offline_retrieval_eval.py"
+
+    result = subprocess.run(
+        [sys.executable, str(example)],
+        cwd=repo_root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert "Retrieval quality comparison" in result.stdout
+    assert "BM25" in result.stdout
+    assert "Hybrid" in result.stdout
+    assert "NDCG@5=" in result.stdout
+    assert "MRR=" in result.stdout
+    assert "MAP=" in result.stdout
