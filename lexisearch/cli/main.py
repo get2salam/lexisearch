@@ -113,6 +113,12 @@ def _echo_empty_index_hint(
     click.echo("  Try: lexisearch index ./docs --glob '**/*.txt'")
 
 
+def _echo_blank_query_error(click: Any, command: str, argument: str) -> None:
+    """Print a clear, actionable error when a required text argument is blank."""
+    click.echo(f"Error: {argument} must not be empty or whitespace-only.", err=True)
+    click.echo(f'  Try: lexisearch {command} "your question or search terms"', err=True)
+
+
 def _echo_empty_search_hint(click: Any, query: str, top_k: int) -> None:
     """Print a screen-reader-friendly empty state with next actions."""
     click.echo("  No results found.")
@@ -213,6 +219,10 @@ def _build_cli() -> Any:
         Example:
           lexisearch search "transformer attention mechanism" --top-k 10
         """
+        if not query.strip():
+            _echo_blank_query_error(click, "search", "QUERY")
+            sys.exit(2)
+
         runner = _get_runner(embedder=embedder)
         try:
             retriever = getattr(runner, "retriever", None)
@@ -263,6 +273,10 @@ def _build_cli() -> Any:
           lexisearch ask "What are the main benefits of RAG?" --llm openai
         """
         import time
+
+        if not question.strip():
+            _echo_blank_query_error(click, "ask", "QUESTION")
+            sys.exit(2)
 
         runner = _get_runner(embedder=embedder, llm=llm)
         t0 = time.perf_counter()

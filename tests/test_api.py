@@ -237,6 +237,27 @@ class TestQueryEndpoints:
         resp = client.post("/query", json={"top_k": 5})
         assert resp.status_code == 422
 
+    def test_query_empty_string_returns_422(self, client: TestClient) -> None:
+        resp = client.post("/query", json={"query": ""})
+        assert resp.status_code == 422
+
+    def test_query_whitespace_only_returns_422(self, client: TestClient) -> None:
+        resp = client.post("/query", json={"query": "   \n\t "})
+        assert resp.status_code == 422
+        assert "empty or whitespace" in resp.text
+
+    def test_query_strips_surrounding_whitespace(
+        self, client: TestClient, mock_runner: MagicMock
+    ) -> None:
+        resp = client.post("/query", json={"query": "  What is RAG?  "})
+        assert resp.status_code == 200
+        mock_runner.query.assert_called_once_with("What is RAG?", top_k=5)
+
+    def test_search_blank_q_returns_422(self, client: TestClient) -> None:
+        resp = client.get("/query/search", params={"q": "   "})
+        assert resp.status_code == 422
+        assert "empty or whitespace" in resp.text
+
 
 # ---------------------------------------------------------------------------
 # Evaluate endpoints

@@ -8,7 +8,7 @@ def _make_query_router() -> Any:
     """Build and return the query router (requires FastAPI)."""
     try:
         from fastapi import APIRouter, HTTPException
-        from pydantic import BaseModel, Field
+        from pydantic import BaseModel, Field, field_validator
     except ImportError as exc:  # pragma: no cover
         raise ImportError(
             "FastAPI and pydantic are required for the API server: pip install fastapi"
@@ -17,10 +17,20 @@ def _make_query_router() -> Any:
     from lexisearch.api.server import get_pipeline_store
 
     class QueryBody(BaseModel):
-        query: str = Field(..., description="Natural-language question or keyword query")
+        query: str = Field(
+            ..., min_length=1, description="Natural-language question or keyword query"
+        )
         top_k: int = Field(5, ge=1, le=50, description="Number of chunks to retrieve")
         filters: dict[str, Any] = Field(default_factory=dict, description="Metadata filters")
         include_sources: bool = Field(True, description="Include source attribution")
+
+        @field_validator("query")
+        @classmethod
+        def _query_not_blank(cls, value: str) -> str:
+            stripped = value.strip()
+            if not stripped:
+                raise ValueError("Query must not be empty or whitespace-only.")
+            return stripped
 
     class SourceItem(BaseModel):
         chunk_id: str
@@ -78,6 +88,13 @@ def _make_query_router() -> Any:
     @router.get("/search", response_model=None)
     async def search(q: str, top_k: int = 5) -> dict[str, Any]:
         """Lightweight keyword/semantic search (no generation step)."""
+        q = q.strip()
+        if not q:
+            raise HTTPException(
+                status_code=422,
+                detail="Query parameter 'q' must not be empty or whitespace-only.",
+            )
+
         store = get_pipeline_store()
         runner = store.get("runner")
         if runner is None:

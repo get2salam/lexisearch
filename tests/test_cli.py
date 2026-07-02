@@ -181,6 +181,14 @@ class TestSearchCommand:
         parsed = json.loads(result.output)
         assert isinstance(parsed, list)
 
+    def test_search_blank_query_errors(self, runner: CliRunner) -> None:
+        with patch("lexisearch.cli.main._get_runner") as get_runner:
+            result = runner.invoke(cli, ["search", "   "])
+
+        assert result.exit_code == 2
+        assert "must not be empty" in result.output
+        get_runner.assert_not_called()
+
 
 # ---------------------------------------------------------------------------
 # ``ask`` command
@@ -238,6 +246,14 @@ class TestAskCommand:
             runner.invoke(cli, ["ask", "my question", "--top-k", "7"])
 
         mock_obj.query.assert_called_once_with("my question", top_k=7)
+
+    def test_ask_blank_question_errors(self, runner: CliRunner) -> None:
+        with patch("lexisearch.cli.main._get_runner") as get_runner:
+            result = runner.invoke(cli, ["ask", "\t\n"])
+
+        assert result.exit_code == 2
+        assert "must not be empty" in result.output
+        get_runner.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
